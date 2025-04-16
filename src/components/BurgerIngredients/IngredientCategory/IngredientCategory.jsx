@@ -1,14 +1,20 @@
-import React, { forwardRef } from 'react';
+import React from 'react';
 import { Counter, CurrencyIcon } from '@ya.praktikum/react-developer-burger-ui-components';
-import styles from './BurgerIngredients.module.css';
+import PropTypes from 'prop-types';
+import styles from './IngredientCategory.module.css';
+import { IngredientType } from '../../../utils/types';
 
-const IngredientCategory = forwardRef(({ title, items }, ref) => {
+const IngredientCategory = ({ title, items, onSelect }) => {
   return (
-    <div ref={ref} className={styles.category}>
+    <div className={styles.category}>
       <h2 className={`${styles.categoryTitle} text text_type_main-medium`}>{title}</h2>
       <div className={styles.ingredientsGrid}>
         {items.map(item => (
-          <div key={item._id} className={styles.ingredientCard}>
+          <div 
+            key={item._id} 
+            className={styles.ingredientCard}
+            onClick={() => onSelect(item._id)}
+          >
             {item.count > 0 && (
               <Counter count={item.count} size="default" />
             )}
@@ -31,6 +37,12 @@ const IngredientCategory = forwardRef(({ title, items }, ref) => {
       </div>
     </div>
   );
-});
+};
+
+IngredientCategory.propTypes = {
+  title: PropTypes.string.isRequired,
+  items: PropTypes.arrayOf(IngredientType).isRequired,
+  onSelect: PropTypes.func.isRequired
+};
 
 export default IngredientCategory;

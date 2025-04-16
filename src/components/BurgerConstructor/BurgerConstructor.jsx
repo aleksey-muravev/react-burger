@@ -1,7 +1,9 @@
 import React, { useMemo } from 'react';
-import { ConstructorElement, Button, CurrencyIcon, DragIcon } from '@ya.praktikum/react-developer-burger-ui-components';
-import styles from './BurgerConstructor.module.css';
+import { Button, CurrencyIcon } from '@ya.praktikum/react-developer-burger-ui-components';
+import ConstructorElementWrapper from './ConstructorElement/ConstructorElement';
 import PropTypes from 'prop-types';
+import styles from './BurgerConstructor.module.css';
+import { IngredientType } from '../../utils/types';
 
 const BurgerConstructor = ({ ingredients }) => {
   const { bun, fillings } = useMemo(() => ({
@@ -15,10 +17,10 @@ const BurgerConstructor = ({ ingredients }) => {
   }, [bun, fillings]);
 
   return (
-    <section className={styles.container}>
+    <section className={`${styles.container} ml-10`}>
       {bun && (
-        <div className={`${styles.constructorItem} ${styles.bun}`}>
-          <ConstructorElement
+        <div className={`${styles.constructorItem} ${styles.bun} mb-4`}>
+          <ConstructorElementWrapper 
             type="top"
             isLocked={true}
             text={`${bun.name} (верх)`}
@@ -29,21 +31,17 @@ const BurgerConstructor = ({ ingredients }) => {
       )}
 
       <div className={styles.fillingsContainer}>
-        {fillings.map((item) => (
-          <div key={item._id} className={styles.filling}>
-            <DragIcon type="primary" className={styles.dragIcon} />
-            <ConstructorElement
-              text={item.name}
-              price={item.price}
-              thumbnail={item.image}
-            />
-          </div>
+        {fillings.map((item, index) => (
+          <ConstructorElementWrapper 
+            key={`${item._id}_${index}`}
+            item={item}
+          />
         ))}
       </div>
 
       {bun && (
-        <div className={`${styles.constructorItem} ${styles.bun}`}>
-          <ConstructorElement
+        <div className={`${styles.constructorItem} ${styles.bun} mt-4`}>
+          <ConstructorElementWrapper
             type="bottom"
             isLocked={true}
             text={`${bun.name} (низ)`}
@@ -53,7 +51,7 @@ const BurgerConstructor = ({ ingredients }) => {
         </div>
       )}
 
-      <div className={styles.orderSection}>
+      <div className={`${styles.orderSection} mt-10`}>
         <div className={styles.totalPrice}>
           <span className="text text_type_digits-medium">{totalPrice}</span>
           <CurrencyIcon type="primary" />
@@ -72,15 +70,7 @@ const BurgerConstructor = ({ ingredients }) => {
 };
 
 BurgerConstructor.propTypes = {
-  ingredients: PropTypes.arrayOf(
-    PropTypes.shape({
-      _id: PropTypes.string.isRequired,
-      name: PropTypes.string.isRequired,
-      type: PropTypes.string.isRequired,
-      price: PropTypes.number.isRequired,
-      image: PropTypes.string.isRequired,
-    })
-  ).isRequired
+  ingredients: PropTypes.arrayOf(IngredientType).isRequired
 };
 
 export default BurgerConstructor;

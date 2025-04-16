@@ -1,8 +1,9 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { Tab } from '@ya.praktikum/react-developer-burger-ui-components';
-import IngredientCategory from './IngredientCategory';
-import styles from './BurgerIngredients.module.css';
 import PropTypes from 'prop-types';
+import IngredientCategory from './IngredientCategory/IngredientCategory';
+import styles from './BurgerIngredients.module.css';
+import { IngredientType } from '../../utils/types';
 
 const BurgerIngredients = ({ ingredients }) => {
   const [currentTab, setCurrentTab] = useState('bun');
@@ -33,9 +34,13 @@ const BurgerIngredients = ({ ingredients }) => {
     main: ingredients.filter(item => item.type === 'main')
   };
 
+  // Считаем количество использованных ингредиентов
+  const getUsedCount = (ingredient) => {
+    return ingredient.count || 0;
+  };
+
   return (
     <section className={styles.container}>
-       
       <div className={styles.tabs} ref={tabsRef}>
         <Tab value="bun" active={currentTab === 'bun'} onClick={() => handleTabClick('bun')}>
           Булки
@@ -54,24 +59,19 @@ const BurgerIngredients = ({ ingredients }) => {
             key={type}
             ref={categoriesRef[type]}
             title={type === 'bun' ? 'Булки' : type === 'sauce' ? 'Соусы' : 'Начинки'}
-            items={items}
+            items={items.map(item => ({
+              ...item,
+              count: getUsedCount(item)
+            }))}
           />
         ))}
       </div>
     </section>
   );
 };
+
 BurgerIngredients.propTypes = {
-  ingredients: PropTypes.arrayOf(
-    PropTypes.shape({
-      _id: PropTypes.string.isRequired,
-      name: PropTypes.string.isRequired,
-      type: PropTypes.oneOf(['bun', 'sauce', 'main']).isRequired,
-      price: PropTypes.number.isRequired,
-      image: PropTypes.string.isRequired,
-      count: PropTypes.number
-    })
-  ).isRequired
+  ingredients: PropTypes.arrayOf(IngredientType).isRequired
 };
 
 export default BurgerIngredients;
