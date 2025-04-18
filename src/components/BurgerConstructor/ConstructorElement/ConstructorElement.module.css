@@ -1,0 +1,12 @@
+.filling {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.dragIcon {
+  flex-shrink: 0;
+  margin-right: 8px;
+  cursor: move;
+}
