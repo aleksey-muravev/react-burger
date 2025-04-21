@@ -1,8 +1,8 @@
 import React, { useMemo, useState } from 'react';
 import { Button, CurrencyIcon } from '@ya.praktikum/react-developer-burger-ui-components';
 import ConstructorElementWrapper from './ConstructorElement/ConstructorElement';
-import Modal from '../modals/common/Modal/Modal';
-import OrderDetails from '../modals/content/OrderDetails/OrderDetails';
+import Modal from '../Modal/Modal';
+import OrderDetails from '../OrderDetails/OrderDetails';
 import { testOrder } from '../../utils/orderDetails-test';
 import styles from './BurgerConstructor.module.css';
 import PropTypes from 'prop-types'; 

@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Tab } from '@ya.praktikum/react-developer-burger-ui-components';
-import Modal from '../modals/common/Modal/Modal'; // Правильный путь
-import IngredientDetails from '../modals/content/IngredientDetails/IngredientDetails'; // Правильный путь
+import Modal from '../Modal/Modal';
+import IngredientDetails from '../IngredientDetails/IngredientDetails'; 
 import IngredientCategory from './IngredientCategory/IngredientCategory';
 import styles from './BurgerIngredients.module.css';
 import PropTypes from 'prop-types';

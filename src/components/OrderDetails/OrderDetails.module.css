@@ -1,0 +1,83 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 120px 40px 60px;
+  width: 520px;
+}
+
+.orderNumber {
+  text-shadow: 0 0 16px rgba(51, 51, 255, 0.25),
+               0 0 8px rgba(51, 51, 255, 0.25),
+               0 4px 32px rgba(51, 51, 255, 0.5);
+  margin-bottom: 32px;
+}
+
+.orderIdText {
+  margin-bottom: 60px;
+}
+
+.statusIndicator {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  margin-bottom: 60px;
+}
+
+.vectorsContainer {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.vector {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.vector svg {
+  position: absolute;
+  mix-blend-mode: screen;
+}
+
+.vector1 svg {
+  width: 68px;
+  height: 66px;
+  opacity: 0.6;
+}
+
+.vector2 svg {
+  width: 107px;
+  height: 100px;
+  opacity: 0.6;
+}
+
+.vector3 svg {
+  width: 98px;
+  height: 102px;
+  opacity: 0.6;
+}
+
+.checkmark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+}
+
+.checkmark svg {
+  width: 48px;
+  height: 48px;
+  color: #F2F2F3;
+}
+
+.waitText {
+  margin-top: 8px;
+}

@@ -5,25 +5,10 @@ import BurgerConstructor from '../BurgerConstructor/BurgerConstructor';
 import { API_URL } from '../../utils/api';
 import styles from './App.module.css';
 
-interface IIngredient {
-  _id: string;
-  name: string;
-  type: 'bun' | 'sauce' | 'main';
-  proteins: number;
-  fat: number;
-  carbohydrates: number;
-  calories: number;
-  price: number;
-  image: string;
-  image_mobile: string;
-  image_large: string;
-  __v: number;
-}
-
 function App() {
-  const [ingredients, setIngredients] = useState<IIngredient[]>([]);
+  const [ingredients, setIngredients] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState(null); // Может быть null или строкой
 
   useEffect(() => {
     const fetchIngredients = async () => {
@@ -35,11 +20,8 @@ function App() {
         const data = await response.json();
         setIngredients(data.data);
       } catch (err) {
-        if (err instanceof Error) {
-          setError(err.message);
-        } else {
-          setError('Неизвестная ошибка');
-        }
+        const errorMessage = err instanceof Error ? err.message : 'Неизвестная ошибка';
+        setError(errorMessage); // Теперь errorMessage точно строка
         console.error('Ошибка при загрузке ингредиентов:', err);
       } finally {
         setLoading(false);
