@@ -1,12 +1,14 @@
 import React, { useState, useRef } from 'react';
 import { Tab } from '@ya.praktikum/react-developer-burger-ui-components';
-import PropTypes from 'prop-types';
+import Modal from '../Modal/Modal';
+import IngredientDetails from '../IngredientDetails/IngredientDetails'; 
 import IngredientCategory from './IngredientCategory/IngredientCategory';
 import styles from './BurgerIngredients.module.css';
-import { IngredientType } from '../../utils/types';
+import PropTypes from 'prop-types';
 
 const BurgerIngredients = ({ ingredients }) => {
   const [currentTab, setCurrentTab] = useState('bun');
+  const [selectedIngredient, setSelectedIngredient] = useState(null);
   const tabsRef = useRef(null);
   const ingredientsListRef = useRef(null);
   const categoriesRef = {
@@ -28,15 +30,18 @@ const BurgerIngredients = ({ ingredients }) => {
     }
   };
 
+  const handleIngredientClick = (ingredient) => {
+    setSelectedIngredient(ingredient);
+  };
+
+  const closeModal = () => {
+    setSelectedIngredient(null);
+  };
+
   const ingredientsByType = {
     bun: ingredients.filter(item => item.type === 'bun'),
     sauce: ingredients.filter(item => item.type === 'sauce'),
     main: ingredients.filter(item => item.type === 'main')
-  };
-
-  // Считаем количество использованных ингредиентов
-  const getUsedCount = (ingredient) => {
-    return ingredient.count || 0;
   };
 
   return (
@@ -59,19 +64,37 @@ const BurgerIngredients = ({ ingredients }) => {
             key={type}
             ref={categoriesRef[type]}
             title={type === 'bun' ? 'Булки' : type === 'sauce' ? 'Соусы' : 'Начинки'}
-            items={items.map(item => ({
-              ...item,
-              count: getUsedCount(item)
-            }))}
+            items={items}
+            onIngredientClick={handleIngredientClick}
           />
         ))}
       </div>
+
+      {selectedIngredient && (
+        <Modal title="Детали ингредиента" onClose={closeModal}>
+          <IngredientDetails ingredient={selectedIngredient} />
+        </Modal>
+      )}
     </section>
   );
 };
 
 BurgerIngredients.propTypes = {
-  ingredients: PropTypes.arrayOf(IngredientType).isRequired
+  ingredients: PropTypes.arrayOf(
+    PropTypes.shape({
+      _id: PropTypes.string.isRequired,
+      name: PropTypes.string.isRequired,
+      type: PropTypes.oneOf(['bun', 'sauce', 'main']).isRequired,
+      proteins: PropTypes.number.isRequired,
+      fat: PropTypes.number.isRequired,
+      carbohydrates: PropTypes.number.isRequired,
+      calories: PropTypes.number.isRequired,
+      price: PropTypes.number.isRequired,
+      image: PropTypes.string.isRequired,
+      image_large: PropTypes.string.isRequired,
+      count: PropTypes.number,
+    })
+  ).isRequired
 };
 
 export default BurgerIngredients;

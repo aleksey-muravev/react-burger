@@ -1,19 +1,18 @@
-import React from 'react';
-import { Counter, CurrencyIcon } from '@ya.praktikum/react-developer-burger-ui-components';
+import React, { forwardRef } from 'react';
 import PropTypes from 'prop-types';
-import styles from './IngredientCategory.module.css';
-import { IngredientType } from '../../../utils/types';
+import { Counter, CurrencyIcon } from '@ya.praktikum/react-developer-burger-ui-components';
+import styles from './IngredientCategory.module.css'; // Используем локальные стили
 
-const IngredientCategory = ({ title, items, onSelect }) => {
+const IngredientCategory = forwardRef(({ title, items, onIngredientClick }, ref) => {
   return (
-    <div className={styles.category}>
+    <div ref={ref} className={styles.category}>
       <h2 className={`${styles.categoryTitle} text text_type_main-medium`}>{title}</h2>
       <div className={styles.ingredientsGrid}>
         {items.map(item => (
           <div 
             key={item._id} 
             className={styles.ingredientCard}
-            onClick={() => onSelect(item._id)}
+            onClick={() => onIngredientClick(item)}
           >
             {item.count > 0 && (
               <Counter count={item.count} size="default" />
@@ -37,12 +36,22 @@ const IngredientCategory = ({ title, items, onSelect }) => {
       </div>
     </div>
   );
-};
+});
+
 
 IngredientCategory.propTypes = {
   title: PropTypes.string.isRequired,
-  items: PropTypes.arrayOf(IngredientType).isRequired,
-  onSelect: PropTypes.func.isRequired
+  items: PropTypes.arrayOf(
+    PropTypes.shape({
+      _id: PropTypes.string.isRequired,
+      name: PropTypes.string.isRequired,
+      type: PropTypes.oneOf(['bun', 'sauce', 'main']).isRequired,
+      price: PropTypes.number.isRequired,
+      image: PropTypes.string.isRequired,
+      count: PropTypes.number,
+    })
+  ).isRequired,
+  onIngredientClick: PropTypes.func.isRequired
 };
 
 export default IngredientCategory;
