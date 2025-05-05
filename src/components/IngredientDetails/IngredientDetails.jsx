@@ -1,19 +1,22 @@
 import React from 'react';
-import PropTypes from 'prop-types';
+import { useSelector } from 'react-redux';
 import { CurrencyIcon } from '@ya.praktikum/react-developer-burger-ui-components';
 import styles from './IngredientDetails.module.css';
-import { ingredientPropType } from '../../utils/types';
 
-const IngredientDetails = ({ ingredient }) => {
+const IngredientDetails = () => {
+  const { currentIngredient } = useSelector(state => state.ingredients);
+
+  if (!currentIngredient) return null;
+
   return (
     <div className={styles.container}>
       <img 
-        src={ingredient.image_large} 
-        alt={ingredient.name}
+        src={currentIngredient.image_large} 
+        alt={currentIngredient.name}
         className={styles.image}
       />
       <h3 className={`${styles.name} text text_type_main-medium mt-4 mb-8`}>
-        {ingredient.name}
+        {currentIngredient.name}
       </h3>
       
       <div className={styles.nutrition}>
@@ -22,7 +25,7 @@ const IngredientDetails = ({ ingredient }) => {
             Калории,ккал
           </span>
           <span className="text text_type_digits-default text_color_inactive mt-2">
-            {ingredient.calories}
+            {currentIngredient.calories}
           </span>
         </div>
         <div className={styles.nutritionItem}>
@@ -30,7 +33,7 @@ const IngredientDetails = ({ ingredient }) => {
             Белки,г
           </span>
           <span className="text text_type_digits-default text_color_inactive mt-2">
-            {ingredient.proteins}
+            {currentIngredient.proteins}
           </span>
         </div>
         <div className={styles.nutritionItem}>
@@ -38,7 +41,7 @@ const IngredientDetails = ({ ingredient }) => {
             Жиры,г
           </span>
           <span className="text text_type_digits-default text_color_inactive mt-2">
-            {ingredient.fat}
+            {currentIngredient.fat}
           </span>
         </div>
         <div className={styles.nutritionItem}>
@@ -46,16 +49,12 @@ const IngredientDetails = ({ ingredient }) => {
             Углеводы,г
           </span>
           <span className="text text_type_digits-default text_color_inactive mt-2">
-            {ingredient.carbohydrates}
+            {currentIngredient.carbohydrates}
           </span>
         </div>
       </div>
     </div>
   );
-};
-
-IngredientDetails.propTypes = {
-  ingredient: ingredientPropType.isRequired
 };
 
 export default IngredientDetails;
