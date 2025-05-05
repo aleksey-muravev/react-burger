@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from 'uuid';
 import {
   ADD_CONSTRUCTOR_ITEM,
   REMOVE_CONSTRUCTOR_ITEM,
@@ -11,18 +12,21 @@ import {
   resetBunCount
 } from '../ingredients/actions';
 
-
 export const addConstructorItem = (item) => (dispatch) => {
+  const itemWithId = {
+    ...item,
+    uuid: uuidv4() 
+  };
+
   dispatch({
     type: ADD_CONSTRUCTOR_ITEM,
-    payload: item
+    payload: itemWithId
   });
 
   if (item.type !== 'bun') {
     dispatch(incrementIngredientCount(item._id));
   }
 };
-
 
 export const removeConstructorItem = (uuid, ingredientId) => (dispatch) => {
   dispatch({
@@ -32,8 +36,14 @@ export const removeConstructorItem = (uuid, ingredientId) => (dispatch) => {
   dispatch(decrementIngredientCount(ingredientId));
 };
 
+export const setConstructorBun = (bun) => (dispatch, getState) => {
+  const currentBun = getState().burgerConstructor.bun;
+  
+  // Сбрасываем счетчик предыдущей булки
+  if (currentBun) {
+    dispatch(resetBunCount(currentBun._id));
+  }
 
-export const setConstructorBun = (bun) => (dispatch) => {
   dispatch({
     type: SET_CONSTRUCTOR_BUN,
     payload: bun
@@ -41,12 +51,10 @@ export const setConstructorBun = (bun) => (dispatch) => {
   dispatch(resetBunCount(bun._id));
 };
 
-
 export const moveConstructorItem = (dragIndex, hoverIndex) => ({
   type: MOVE_CONSTRUCTOR_ITEM,
   payload: { dragIndex, hoverIndex }
 });
-
 
 export const clearConstructor = () => (dispatch, getState) => {
   const { bun, ingredients } = getState().burgerConstructor;

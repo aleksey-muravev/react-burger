@@ -3,7 +3,7 @@ import {
   REMOVE_CONSTRUCTOR_ITEM,
   SET_CONSTRUCTOR_BUN,
   CLEAR_CONSTRUCTOR,
-  MOVE_CONSTRUCTOR_ITEM // Импортируем новый тип
+  MOVE_CONSTRUCTOR_ITEM
 } from './types';
 
 const initialState = {
@@ -18,10 +18,7 @@ export const constructorReducer = (state = initialState, action) => {
         ...state,
         ingredients: [
           ...state.ingredients,
-          {
-            ...action.payload,
-            uuid: crypto.randomUUID()
-          }
+          action.payload // Получаем готовый объект с UUID
         ]
       };
       
@@ -40,15 +37,12 @@ export const constructorReducer = (state = initialState, action) => {
     case CLEAR_CONSTRUCTOR:
       return initialState;
 
-    // Добавляем обработчик для перемещения ингредиентов
     case MOVE_CONSTRUCTOR_ITEM: {
       const { dragIndex, hoverIndex } = action.payload;
       const newIngredients = [...state.ingredients];
       const draggedItem = newIngredients[dragIndex];
       
-      // Удаляем перетаскиваемый элемент
       newIngredients.splice(dragIndex, 1);
-      // Вставляем на новую позицию
       newIngredients.splice(hoverIndex, 0, draggedItem);
       
       return {

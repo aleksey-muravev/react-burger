@@ -19,8 +19,6 @@ import {
   decrementIngredientCount,
   resetBunCount
 } from '../../services/ingredients/actions';
-import PropTypes from 'prop-types';
-import { ingredientPropType } from '../../utils/types';
 
 const BurgerConstructor = () => {
   const dispatch = useDispatch();
@@ -116,7 +114,7 @@ const BurgerConstructor = () => {
         </div>
       )}
 
-      {/* Список ингредиентов с возможностью перетаскивания */}
+      {/* Список ингредиентов */}
       <div className={styles.fillingsContainer}>
         {ingredients.map((item, index) => (
           <ConstructorElementWrapper
@@ -163,7 +161,7 @@ const BurgerConstructor = () => {
         </Button>
       </div>
 
-      {/* Модальное окно с номером заказа */}
+      {/* Модальное окно */}
       {isOrderModalOpen && (
         <Modal onClose={closeOrderModal} title="">
           <OrderDetails />
@@ -171,13 +169,6 @@ const BurgerConstructor = () => {
       )}
     </div>
   );
-};
-
-BurgerConstructor.propTypes = {
-  bun: ingredientPropType,
-  ingredients: PropTypes.arrayOf(ingredientPropType).isRequired,
-  orderLoading: PropTypes.bool.isRequired,
-  allIngredients: PropTypes.arrayOf(ingredientPropType).isRequired
 };
 
 export default BurgerConstructor;

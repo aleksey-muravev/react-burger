@@ -1,16 +1,16 @@
-import { API_URL } from '../../utils/api';
 import {
   CREATE_ORDER_REQUEST,
   CREATE_ORDER_SUCCESS,
   CREATE_ORDER_FAILED,
   CLEAR_ORDER
 } from './types';
+import { request } from '../../utils/api';
 
 export const createOrder = (ingredients) => async (dispatch) => {
   dispatch({ type: CREATE_ORDER_REQUEST });
 
   try {
-    const res = await fetch(`${API_URL}/orders`, {
+    const data = await request('/orders', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -19,16 +19,13 @@ export const createOrder = (ingredients) => async (dispatch) => {
       body: JSON.stringify({ ingredients })
     });
 
-    const data = await res.json();
-
-    if (!res.ok || !data.success) {
-      // Формируем ошибку вручную, чтобы не вызывать unhandled rejection
+    if (!data.success) {
       const errorMessage = data.message || 'Не удалось оформить заказ';
       dispatch({
         type: CREATE_ORDER_FAILED,
         payload: errorMessage
       });
-      return { error: errorMessage }; // Возвращаем объект с ошибкой
+      return { error: errorMessage };
     }
 
     dispatch({
@@ -36,16 +33,15 @@ export const createOrder = (ingredients) => async (dispatch) => {
       payload: data
     });
 
-    return { payload: data }; // Успешный результат
+    return { payload: data };
 
   } catch (err) {
-    // Обрабатываем сетевые ошибки и другие исключения
     const errorMessage = err.message || 'Ошибка сети при оформлении заказа';
     dispatch({
       type: CREATE_ORDER_FAILED,
       payload: errorMessage
     });
-    return { error: errorMessage }; // Возвращаем объект с ошибкой
+    return { error: errorMessage };
   }
 };
 

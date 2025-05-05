@@ -1,4 +1,3 @@
-import { API_URL } from '../../utils/api';
 import {
   GET_INGREDIENTS_REQUEST,
   GET_INGREDIENTS_SUCCESS,
@@ -9,13 +8,13 @@ import {
   DECREMENT_INGREDIENT_COUNT,
   RESET_BUN_COUNT
 } from './types';
+import { request } from '../../utils/api';
 
 export const getIngredients = () => async (dispatch) => {
   dispatch({ type: GET_INGREDIENTS_REQUEST });
   
   try {
-    const res = await fetch(`${API_URL}/ingredients`);
-    const data = await res.json();
+    const data = await request('/ingredients');
     
     if (data.success) {
       dispatch({
@@ -23,12 +22,13 @@ export const getIngredients = () => async (dispatch) => {
         payload: data.data.map(item => ({ ...item, count: 0 }))
       });
     } else {
-      throw new Error('Ошибка при получении данных');
+      throw new Error('API returned unsuccessful response');
     }
   } catch (err) {
+    console.error('Ingredients fetch failed:', err);
     dispatch({
       type: GET_INGREDIENTS_FAILED,
-      payload: err.message
+      payload: err.message || 'Failed to load ingredients'
     });
   }
 };

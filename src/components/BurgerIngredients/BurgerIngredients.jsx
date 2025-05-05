@@ -6,7 +6,6 @@ import Modal from '../Modal/Modal';
 import IngredientDetails from '../IngredientDetails/IngredientDetails';
 import IngredientCategory from './IngredientCategory/IngredientCategory';
 import styles from './BurgerIngredients.module.css';
-import PropTypes from 'prop-types';
 import { setCurrentIngredient, clearCurrentIngredient } from '../../services/ingredients/actions';
 
 const Ingredient = ({ ingredient, onClick }) => {
@@ -28,7 +27,7 @@ const Ingredient = ({ ingredient, onClick }) => {
   );
 };
 
-const BurgerIngredients = ({ ingredients }) => {
+const BurgerIngredients = () => {
   const [currentTab, setCurrentTab] = useState('bun');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const tabsRef = useRef(null);
@@ -39,6 +38,8 @@ const BurgerIngredients = ({ ingredients }) => {
     main: useRef(null)
   };
   const dispatch = useDispatch();
+  
+  const ingredients = useSelector(state => state.ingredients.items);
   const { bun, ingredients: constructorIngredients } = useSelector(state => state.burgerConstructor);
 
   const ingredientsWithCount = useMemo(() => {
@@ -150,23 +151,6 @@ const BurgerIngredients = ({ ingredients }) => {
       )}
     </section>
   );
-};
-
-BurgerIngredients.propTypes = {
-  ingredients: PropTypes.arrayOf(
-    PropTypes.shape({
-      _id: PropTypes.string.isRequired,
-      name: PropTypes.string.isRequired,
-      type: PropTypes.oneOf(['bun', 'sauce', 'main']).isRequired,
-      proteins: PropTypes.number.isRequired,
-      fat: PropTypes.number.isRequired,
-      carbohydrates: PropTypes.number.isRequired,
-      calories: PropTypes.number.isRequired,
-      price: PropTypes.number.isRequired,
-      image: PropTypes.string.isRequired,
-      image_large: PropTypes.string.isRequired,
-    })
-  ).isRequired
 };
 
 export default BurgerIngredients;

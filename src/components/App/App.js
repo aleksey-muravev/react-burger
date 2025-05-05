@@ -38,7 +38,7 @@ function App() {
           
           <div className={styles.columnsContainer}>
             <div className={styles.ingredientsColumn}>
-              <BurgerIngredients ingredients={ingredients} />
+              <BurgerIngredients />
             </div>
             
             <div className={styles.constructorColumn}>
