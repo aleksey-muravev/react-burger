@@ -1,12 +1,11 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { Tab } from '@ya.praktikum/react-developer-burger-ui-components';
+import { Tab, CurrencyIcon } from '@ya.praktikum/react-developer-burger-ui-components';
 import { useDispatch, useSelector } from 'react-redux';
 import { useDrag } from 'react-dnd';
-import Modal from '../Modal/Modal';
-import IngredientDetails from '../IngredientDetails/IngredientDetails';
+import { useNavigate, useLocation } from 'react-router-dom';
 import IngredientCategory from './IngredientCategory/IngredientCategory';
 import styles from './BurgerIngredients.module.css';
-import { setCurrentIngredient, clearCurrentIngredient } from '../../services/ingredients/actions';
+import { setCurrentIngredient, getIngredients } from '../../services/ingredients/actions';
 
 const Ingredient = ({ ingredient, onClick }) => {
   const [, dragRef] = useDrag({
@@ -21,15 +20,16 @@ const Ingredient = ({ ingredient, onClick }) => {
       className={styles.ingredient}
     >
       <img src={ingredient.image} alt={ingredient.name} />
-      <span className="text text_type_digits-default">{ingredient.price}</span>
-      <p className="text text_type_main-default">{ingredient.name}</p>
+      <span className={`${styles.price} text text_type_digits-default`}>
+        {ingredient.price} <CurrencyIcon type="primary" />
+      </span>
+      <p className={`${styles.name} text text_type_main-default`}>{ingredient.name}</p>
     </div>
   );
 };
 
 const BurgerIngredients = () => {
   const [currentTab, setCurrentTab] = useState('bun');
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const tabsRef = useRef(null);
   const ingredientsListRef = useRef(null);
   const categoriesRef = {
@@ -38,9 +38,17 @@ const BurgerIngredients = () => {
     main: useRef(null)
   };
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const location = useLocation();
   
   const ingredients = useSelector(state => state.ingredients.items);
   const { bun, ingredients: constructorIngredients } = useSelector(state => state.burgerConstructor);
+
+  useEffect(() => {
+    if (!ingredients.length) {
+      dispatch(getIngredients());
+    }
+  }, [dispatch, ingredients.length]);
 
   const ingredientsWithCount = useMemo(() => {
     return ingredients.map(ingredient => {
@@ -105,12 +113,9 @@ const BurgerIngredients = () => {
 
   const handleIngredientClick = (ingredient) => {
     dispatch(setCurrentIngredient(ingredient));
-    setIsModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
-    dispatch(clearCurrentIngredient());
+    navigate(`/ingredients/${ingredient._id}`, {
+      state: { background: location }
+    });
   };
 
   if (!ingredients.length) {
@@ -143,12 +148,6 @@ const BurgerIngredients = () => {
           </div>
         ))}
       </div>
-
-      {isModalOpen && (
-        <Modal title="Детали ингредиента" onClose={closeModal}>
-          <IngredientDetails />
-        </Modal>
-      )}
     </section>
   );
 };

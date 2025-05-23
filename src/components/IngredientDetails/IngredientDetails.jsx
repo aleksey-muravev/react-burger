@@ -3,13 +3,15 @@ import { useSelector } from 'react-redux';
 import { CurrencyIcon } from '@ya.praktikum/react-developer-burger-ui-components';
 import styles from './IngredientDetails.module.css';
 
-const IngredientDetails = () => {
+const IngredientDetails = ({ className = '' }) => {
   const { currentIngredient } = useSelector(state => state.ingredients);
 
-  if (!currentIngredient) return null;
+  if (!currentIngredient) {
+    return <div className="text text_type_main-default">Ингредиент не загружен</div>;
+  }
 
   return (
-    <div className={styles.container}>
+    <div className={`${styles.container} ${className}`}>
       <img 
         src={currentIngredient.image_large} 
         alt={currentIngredient.name}
