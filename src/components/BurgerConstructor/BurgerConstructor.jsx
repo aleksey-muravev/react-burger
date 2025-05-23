@@ -1,6 +1,8 @@
 import React, { useMemo, useState, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { createSelector } from 'reselect';
 import { useDrop } from 'react-dnd';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Button, CurrencyIcon } from '@ya.praktikum/react-developer-burger-ui-components';
 import ConstructorElementWrapper from './ConstructorElement/ConstructorElement';
 import Modal from '../Modal/Modal';
@@ -22,11 +24,40 @@ import {
 
 const BurgerConstructor = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   
-  const { items: allIngredients } = useSelector(state => state.ingredients);
-  const { bun, ingredients } = useSelector(state => state.burgerConstructor);
-  const { loading: orderLoading } = useSelector(state => state.order);
+  // Встроенные мемоизированные селекторы
+  const selectIngredients = useMemo(
+    () => createSelector(
+      state => state.ingredients,
+      (ingredients) => ingredients.items
+    ),
+    []
+  );
+
+  const selectConstructor = useMemo(
+    () => createSelector(
+      state => state.burgerConstructor,
+      ({ bun, ingredients }) => ({ bun, ingredients })
+    ),
+    []
+  );
+
+  const selectAuth = useMemo(
+    () => createSelector(
+      state => state.auth,
+      (auth) => auth.isAuthenticated
+    ),
+    []
+  );
+
+  // Использование селекторов
+  const allIngredients = useSelector(selectIngredients);
+  const { bun, ingredients } = useSelector(selectConstructor);
+  const isAuthenticated = useSelector(selectAuth);
 
   const [, dropTarget] = useDrop({
     accept: ['ingredient', 'constructorItem'],
@@ -61,38 +92,38 @@ const BurgerConstructor = () => {
     dispatch(decrementIngredientCount(ingredientId));
   }, [dispatch]);
 
-  const handleOrderClick = async (e) => {
+  const handleOrderClick = useCallback(async (e) => {
     e.preventDefault();
+    
+    if (!isAuthenticated) {
+      navigate('/login', { state: { from: location } });
+      return;
+    }
     
     if (!bun) {
       alert('Пожалуйста, выберите булку!');
       return;
     }
 
-    if (ingredients.length === 0) {
-      alert('Добавьте хотя бы один ингредиент!');
-      return;
-    }
-
     try {
-      const ingredientIds = [
-        bun._id,
-        ...ingredients.map(item => item._id),
-        bun._id
-      ];
-
+      setIsProcessing(true);
+      const ingredientIds = [bun._id, ...ingredients.map(item => item._id), bun._id];
       const result = await dispatch(createOrder(ingredientIds));
       
       if (result?.payload?.success) {
         setIsOrderModalOpen(true);
-      } else {
-        throw new Error(result?.error?.message || 'Не удалось оформить заказ');
       }
-    } catch (err) {
-      console.error('Ошибка оформления заказа:', err);
-      alert(err.message);
+    } catch (error) {
+      if (error.message.includes('jwt') || error.message.includes('token')) {
+        alert('Сессия истекла. Пожалуйста, войдите снова');
+        navigate('/login', { state: { from: location } });
+      } else {
+        alert(error.message || 'Ошибка при оформлении заказа');
+      }
+    } finally {
+      setIsProcessing(false);
     }
-  };
+  }, [isAuthenticated, bun, ingredients, dispatch, navigate, location]);
 
   const closeOrderModal = useCallback(() => {
     setIsOrderModalOpen(false);
@@ -155,9 +186,10 @@ const BurgerConstructor = () => {
           type="primary"
           size="large"
           onClick={handleOrderClick}
-          disabled={!bun || ingredients.length === 0 || orderLoading}
+          disabled={!bun || ingredients.length === 0 || isProcessing}
+          htmlType="button"
         >
-          {orderLoading ? 'Оформляем...' : 'Оформить заказ'}
+          {isProcessing ? 'Оформляем...' : 'Оформить заказ'}
         </Button>
       </div>
 
@@ -171,4 +203,4 @@ const BurgerConstructor = () => {
   );
 };
 
-export default BurgerConstructor;
+export default React.memo(BurgerConstructor);

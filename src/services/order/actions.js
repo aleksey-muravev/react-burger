@@ -4,47 +4,42 @@ import {
   CREATE_ORDER_FAILED,
   CLEAR_ORDER
 } from './types';
-import { request } from '../../utils/api';
+import { requestWithRefresh } from '../../utils/api';
 
-export const createOrder = (ingredients) => async (dispatch) => {
+export const createOrder = (ingredients) => async (dispatch, getState) => {
   dispatch({ type: CREATE_ORDER_REQUEST });
-
+  
   try {
-    const data = await request('/orders', {
+    const { accessToken } = getState().auth;
+    if (!accessToken) throw new Error('Требуется авторизация');
+
+    const ingredientsKey = ingredients.join(',');
+    const data = await requestWithRefresh('/orders', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': localStorage.getItem('accessToken') || ''
+        'Authorization': accessToken
       },
       body: JSON.stringify({ ingredients })
-    });
+    }, dispatch);
 
     if (!data.success) {
-      const errorMessage = data.message || 'Не удалось оформить заказ';
-      dispatch({
-        type: CREATE_ORDER_FAILED,
-        payload: errorMessage
-      });
-      return { error: errorMessage };
+      throw new Error(data.message || 'Ошибка сервера');
     }
 
-    dispatch({
-      type: CREATE_ORDER_SUCCESS,
-      payload: data
-    });
-
+    dispatch({ type: CREATE_ORDER_SUCCESS, payload: data });
     return { payload: data };
-
   } catch (err) {
-    const errorMessage = err.message || 'Ошибка сети при оформлении заказа';
-    dispatch({
-      type: CREATE_ORDER_FAILED,
-      payload: errorMessage
+    dispatch({ 
+      type: CREATE_ORDER_FAILED, 
+      payload: err.message.includes('jwt') 
+        ? 'Сессия истекла' 
+        : err.message 
     });
-    return { error: errorMessage };
+    throw err;
   }
 };
 
-export const clearOrder = () => ({
-  type: CLEAR_ORDER
-});
+export const clearOrder = () => {
+  return { type: CLEAR_ORDER };
+};
