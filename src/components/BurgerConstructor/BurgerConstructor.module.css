@@ -1,0 +1,111 @@
+.container {
+  background: #131316;
+  border-radius: 40px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  max-width: 600px;
+  box-sizing: border-box;
+  margin-left: auto;
+  height: calc(100vh - 220px);
+  min-height: 500px;
+}
+
+.fillingsContainer {
+  max-height: calc(100vh - 400px);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 0;
+  padding: 0 8px;
+  scrollbar-width: thin;
+  scrollbar-color: #8585AD #2F2F37;
+}
+
+.fillingsContainer::-webkit-scrollbar {
+  width: 8px;
+}
+
+.fillingsContainer::-webkit-scrollbar-track {
+  background: #2F2F37;
+}
+
+.fillingsContainer::-webkit-scrollbar-thumb {
+  background-color: #8585AD;
+  border-radius: 4px;
+}
+
+.bun {
+  padding-left: 32px;
+}
+
+.filling {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.ingredientElement {
+  width: 100%;
+  flex: 1;
+  min-width: 0;
+}
+
+.dragIcon {
+  flex-shrink: 0;
+  margin-right: 8px;
+  cursor: move;
+}
+
+.orderSection {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-top: 20px;
+  gap: 40px;
+  padding-right: 8px;
+}
+
+.totalPrice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.orderButton {
+  min-width: 215px;
+  padding: 16px 0;
+}
+
+@media (max-width: 1024px) {
+  .container {
+    max-width: 100%;
+    margin-left: 0;
+    height: auto;
+    min-height: 400px;
+  }
+  
+  .fillingsContainer {
+    max-height: 300px;
+  }
+}
+
+@media (max-width: 768px) {
+  .orderSection {
+    flex-direction: column;
+    gap: 16px;
+    padding-right: 0;
+  }
+  
+  .orderButton {
+    width: 100%;
+  }
+  
+  .bun {
+    padding-left: 16px;
+  }
+}

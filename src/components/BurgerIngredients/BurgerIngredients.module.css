@@ -1,0 +1,119 @@
+.container {
+  max-width: 600px;
+  width: 100%;
+}
+
+.title {
+  color: #F2F2F3;
+  margin-bottom: 24px;
+}
+
+.tabs {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  scrollbar-width: none;
+  margin-bottom: 16px;
+}
+
+.tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.tabItem {
+  white-space: nowrap;
+  padding: 8px 16px;
+  border-radius: 20px;
+  background: #2F2F37;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.tabItemActive {
+  background: #4C4CFF;
+}
+
+.ingredientsList {
+  max-height: calc(100vh - 340px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #8585AD #2F2F37;
+}
+
+.ingredientsList::-webkit-scrollbar {
+  width: 8px;
+}
+
+.ingredientsList::-webkit-scrollbar-track {
+  background: #2F2F37;
+}
+
+.ingredientsList::-webkit-scrollbar-thumb {
+  background-color: #8585AD;
+  border-radius: 4px;
+}
+
+.category {
+  margin-bottom: 40px;
+}
+
+.categoryTitle {
+  color: #F2F2F3;
+  margin-bottom: 24px;
+}
+
+.ingredientsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.ingredientCard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  max-width: 100%;
+}
+
+.ingredientImage {
+  width: 240px;
+  height: 120px;
+  object-fit: contain;
+}
+
+.priceContainer {
+  display: flex;
+  align-items: center;
+  margin: 8px 0;
+}
+
+.price {
+  color: #F2F2F3;
+  margin-right: 8px;
+}
+
+.name {
+  color: #F2F2F3;
+  text-align: center;
+  max-width: 240px;
+  word-wrap: break-word;
+}
+
+@media (max-width: 768px) {
+  .ingredientsGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .ingredientsList {
+    max-height: calc(100vh - 300px);
+  }
+  
+  .ingredientImage {
+    width: 100%;
+    max-width: 240px;
+  }
+}

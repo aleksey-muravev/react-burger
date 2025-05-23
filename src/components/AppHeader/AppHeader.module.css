@@ -1,0 +1,68 @@
+.header {
+  background: #1C1C21;
+  box-shadow: 0 24px 32px rgba(0, 0, 0, 0.04), 
+              0 16px 24px rgba(0, 0, 0, 0.04), 
+              0 4px 8px rgba(0, 0, 0, 0.04);
+  width: 100%;
+}
+
+.container {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.leftGroup {
+  display: flex;
+  gap: 8px;
+  flex: 1;
+}
+
+.logo {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.rightGroup {
+  display: flex;
+  flex: 1;
+  justify-content: flex-end;
+}
+
+.navLink {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  padding: 16px 20px;
+  border-radius: 40px;
+  transition: all 0.3s ease;
+}
+
+.navLink:hover {
+  color: #F2F2F3;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.navLink:hover .inactiveText {
+  color: #F2F2F3;
+}
+
+.activeText {
+  color: #F2F2F3;
+}
+
+.inactiveText {
+  color: #8585AD;
+}
+
+/* Стили для иконок */
+.navLink svg {
+  transition: all 0.3s ease;
+}
+
+.navLink:hover svg {
+  fill: #F2F2F3;
+}

@@ -1,0 +1,29 @@
+/* Добавляем новые стили для заголовка и сетки */
+.mainContent {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 40px 20px 0;
+}
+
+.title {
+  color: #F2F2F3;
+  text-align: left;
+  margin-bottom: 20px;
+}
+
+.columnsContainer {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+}
+
+/* Адаптивность */
+@media (max-width: 1024px) {
+  .columnsContainer {
+    grid-template-columns: 1fr;
+  }
+  
+  .title {
+    text-align: center;
+  }
+}
