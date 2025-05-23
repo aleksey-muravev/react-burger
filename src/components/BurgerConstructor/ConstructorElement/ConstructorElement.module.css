@@ -10,3 +10,14 @@
   margin-right: 8px;
   cursor: move;
 }
+
+.filling {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.dragIcon {
+  cursor: move;
+  margin-right: 8px;
+}

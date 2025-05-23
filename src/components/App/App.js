@@ -1,35 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
+import { useDispatch, useSelector } from 'react-redux';
 import AppHeader from '../AppHeader/AppHeader';
 import BurgerIngredients from '../BurgerIngredients/BurgerIngredients';
 import BurgerConstructor from '../BurgerConstructor/BurgerConstructor';
-import { API_URL } from '../../utils/api';
+import { getIngredients } from '../../services/ingredients/actions';
 import styles from './App.module.css';
 
 function App() {
-  const [ingredients, setIngredients] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null); // Может быть null или строкой
+  const dispatch = useDispatch();
+  const { items: ingredients, loading, error } = useSelector(state => state.ingredients);
 
   useEffect(() => {
-    const fetchIngredients = async () => {
-      try {
-        const response = await fetch(`${API_URL}/ingredients`);
-        if (!response.ok) {
-          throw new Error(`Ошибка HTTP: ${response.status}`);
-        }
-        const data = await response.json();
-        setIngredients(data.data);
-      } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Неизвестная ошибка';
-        setError(errorMessage); // Теперь errorMessage точно строка
-        console.error('Ошибка при загрузке ингредиентов:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchIngredients();
-  }, []);
+    dispatch(getIngredients());
+  }, [dispatch]);
 
   if (loading) {
     return <div className="text text_type_main-medium">Загрузка ингредиентов...</div>;
@@ -44,23 +29,25 @@ function App() {
   }
 
   return (
-    <div className={styles.app}>
-      <AppHeader />
-      
-      <main className={styles.mainContent}>
-        <h1 className={`${styles.title} text text_type_main-large mb-5`}>Соберите бургер</h1>
+    <DndProvider backend={HTML5Backend}>
+      <div className={styles.app}>
+        <AppHeader />
         
-        <div className={styles.columnsContainer}>
-          <div className={styles.ingredientsColumn}>
-            <BurgerIngredients ingredients={ingredients} />
-          </div>
+        <main className={styles.mainContent}>
+          <h1 className={`${styles.title} text text_type_main-large mb-5`}>Соберите бургер</h1>
           
-          <div className={styles.constructorColumn}>
-            <BurgerConstructor ingredients={ingredients} />
+          <div className={styles.columnsContainer}>
+            <div className={styles.ingredientsColumn}>
+              <BurgerIngredients />
+            </div>
+            
+            <div className={styles.constructorColumn}>
+              <BurgerConstructor />
+            </div>
           </div>
-        </div>
-      </main>
-    </div>
+        </main>
+      </div>
+    </DndProvider>
   );
 }
 
