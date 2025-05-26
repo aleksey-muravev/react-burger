@@ -1,54 +1,86 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import {
   Logo,
   BurgerIcon,
   ListIcon,
   ProfileIcon
 } from '@ya.praktikum/react-developer-burger-ui-components';
+import { useSelector } from 'react-redux';
 import styles from './AppHeader.module.css';
 
 const AppHeader = () => {
-  const [activeTab, setActiveTab] = useState('constructor');
+  const { isAuthenticated } = useSelector(state => state.auth);
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const isActive = (path) => {
+    if (path === '/') {
+      return location.pathname === '/' || 
+             location.pathname.startsWith('/ingredients');
+    }
+    return location.pathname.startsWith(path);
+  };
+
+  const handleFeedClick = (e) => {
+    e.preventDefault();
+    navigate('/feed');
+  };
+
+  const handleProfileClick = (e) => {
+    e.preventDefault();
+    navigate(isAuthenticated ? '/profile' : '/login');
+  };
 
   return (
     <header className={`${styles.header} pt-4 pb-4`}>
       <div className={styles.container}>
         <div className={styles.leftGroup}>
-          <nav 
-            className={`${styles.navLink} pl-5 pr-5`} 
-            onClick={() => setActiveTab('constructor')}
+          <NavLink 
+            to="/"
+            className={({ isActive: isNavActive }) => 
+              `${styles.navLink} pl-5 pr-5 ${isNavActive || isActive('/') ? styles.activeText : styles.inactiveText}`
+            }
           >
-            <BurgerIcon type={activeTab === 'constructor' ? 'primary' : 'secondary'} />
-            <span className={`text text_type_main-default ml-2 ${activeTab === 'constructor' ? '' : 'text_color_inactive'}`}>
+            <BurgerIcon type={isActive('/') ? "primary" : "secondary"} />
+            <span className={`text text_type_main-default ml-2 ${isActive('/') ? styles.activeText : styles.inactiveText}`}>
               Конструктор
             </span>
-          </nav>
+          </NavLink>
           
-          <nav 
-            className={`${styles.navLink} pl-5 pr-5`} 
-            onClick={() => setActiveTab('orders')}
+          <NavLink 
+            to="/feed"
+            className={({ isActive: isNavActive }) => 
+              `${styles.navLink} pl-5 pr-5 ${isNavActive || isActive('/feed') ? styles.activeText : styles.inactiveText}`
+            }
+            onClick={handleFeedClick}
           >
-            <ListIcon type={activeTab === 'orders' ? 'primary' : 'secondary'} />
-            <span className={`text text_type_main-default ml-2 ${activeTab === 'orders' ? '' : 'text_color_inactive'}`}>
+            <ListIcon type={isActive('/feed') ? "primary" : "secondary"} />
+            <span className={`text text_type_main-default ml-2 ${isActive('/feed') ? styles.activeText : styles.inactiveText}`}>
               Лента заказов
             </span>
-          </nav>
+          </NavLink>
         </div>
 
         <div className={styles.logo}>
-          <Logo />
+          <NavLink to="/">
+            <Logo />
+          </NavLink>
         </div>
 
         <div className={styles.rightGroup}>
-          <nav 
-            className={`${styles.navLink} pl-5 pr-5`} 
-            onClick={() => setActiveTab('profile')}
+          <NavLink 
+            to={isAuthenticated ? "/profile" : "/login"}
+            className={({ isActive: isNavActive }) => 
+              `${styles.navLink} pl-5 pr-5 ${isNavActive || isActive('/profile') ? styles.activeText : styles.inactiveText}`
+            }
+            onClick={handleProfileClick}
           >
-            <ProfileIcon type={activeTab === 'profile' ? 'primary' : 'secondary'} />
-            <span className={`text text_type_main-default ml-2 ${activeTab === 'profile' ? '' : 'text_color_inactive'}`}>
-              Личный кабинет
+            <ProfileIcon type={isActive('/profile') ? "primary" : "secondary"} />
+            <span className={`text text_type_main-default ml-2 ${isActive('/profile') ? styles.activeText : styles.inactiveText}`}>
+              {isAuthenticated ? "Личный кабинет" : "Войти"}
             </span>
-          </nav>
+          </NavLink>
         </div>
       </div>
     </header>

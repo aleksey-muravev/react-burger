@@ -4,7 +4,6 @@
               0 16px 24px rgba(0, 0, 0, 0.04), 
               0 4px 8px rgba(0, 0, 0, 0.04);
   width: 100%;
-  padding: 16px 0;
 }
 
 .container {
@@ -18,7 +17,7 @@
 .leftGroup {
   display: flex;
   gap: 8px;
-  flex: 1; /* Занимает доступное пространство */
+  flex: 1;
 }
 
 .logo {
@@ -29,20 +28,41 @@
 
 .rightGroup {
   display: flex;
-  flex: 1; /* Занимает доступное пространство */
+  flex: 1;
   justify-content: flex-end;
-  padding-right: 5px; /* Отступ от правого края */
 }
 
 .navLink {
   display: flex;
   align-items: center;
-  cursor: pointer;
+  text-decoration: none;
   padding: 16px 20px;
   border-radius: 40px;
   transition: all 0.3s ease;
 }
 
 .navLink:hover {
+  color: #F2F2F3;
   background: rgba(255, 255, 255, 0.05);
+}
+
+.navLink:hover .inactiveText {
+  color: #F2F2F3;
+}
+
+.activeText {
+  color: #F2F2F3;
+}
+
+.inactiveText {
+  color: #8585AD;
+}
+
+/* Стили для иконок */
+.navLink svg {
+  transition: all 0.3s ease;
+}
+
+.navLink:hover svg {
+  fill: #F2F2F3;
 }
