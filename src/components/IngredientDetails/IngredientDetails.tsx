@@ -1,10 +1,31 @@
-import React from 'react';
+import React, { FC } from 'react';
 import { useSelector } from 'react-redux';
 import { CurrencyIcon } from '@ya.praktikum/react-developer-burger-ui-components';
 import styles from './IngredientDetails.module.css';
+import { RootState } from '../../services/store';
 
-const IngredientDetails = ({ className = '' }) => {
-  const { currentIngredient } = useSelector(state => state.ingredients);
+interface Ingredient {
+  image_large: string;
+  name: string;
+  calories: number;
+  proteins: number;
+  fat: number;
+  carbohydrates: number;
+  // Add other properties if they exist in your ingredient object
+}
+
+interface IngredientsState {
+  currentIngredient: Ingredient | null;
+}
+
+interface IngredientDetailsProps {
+  className?: string;
+}
+
+const IngredientDetails: FC<IngredientDetailsProps> = ({ className = '' }) => {
+  const { currentIngredient } = useSelector((state: RootState) => ({
+    currentIngredient: (state.ingredients as IngredientsState).currentIngredient
+  }));
 
   if (!currentIngredient) {
     return <div className="text text_type_main-default">Ингредиент не загружен</div>;

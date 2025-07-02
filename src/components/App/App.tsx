@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, FC } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { useDispatch, useSelector } from 'react-redux';
@@ -8,10 +8,11 @@ import BurgerIngredients from '../BurgerIngredients/BurgerIngredients';
 import BurgerConstructor from '../BurgerConstructor/BurgerConstructor';
 import { getIngredients, setCurrentIngredient } from '../../services/ingredients/actions';
 import { getUser } from '../../services/auth/actions';
-import { ProtectedRoute, ResetPasswordProtected } from '../ProtectedRoute/ProtectedRoute';
+import { ProtectedRoute } from '../ProtectedRoute/ProtectedRoute';
 import styles from './App.module.css';
 import Modal from '../Modal/Modal';
 import IngredientDetails from '../IngredientDetails/IngredientDetails';
+import { RootState, AppDispatch, Ingredient } from '../../utils/types';
 
 // Импорты страниц
 import Login from '../../pages/Login/Login';
@@ -23,9 +24,20 @@ import Orders from '../../pages/Profile/Orders/Orders';
 import NotFound from '../../pages/NotFound/NotFound';
 import IngredientPage from '../../pages/IngredientPage/IngredientPage';
 
-function AppContent() {
-  const dispatch = useDispatch();
+interface LocationState {
+  background?: {
+    pathname: string;
+    search: string;
+    hash: string;
+    state: unknown;
+    key: string;
+  };
+}
+
+const AppContent: FC = () => {
+  const dispatch: AppDispatch = useDispatch();
   const location = useLocation();
+  const state = location.state as LocationState;
   const navigate = useNavigate();
   
   const { 
@@ -33,7 +45,7 @@ function AppContent() {
     loading: ingredientsLoading, 
     error: ingredientsError,
     currentIngredient
-  } = useSelector(state => state.ingredients);
+  } = useSelector((state: RootState) => state.ingredients);
 
   useEffect(() => {
     dispatch(getIngredients());
@@ -65,7 +77,7 @@ function AppContent() {
     );
   }
 
-  const background = location.state?.background;
+  const background = state?.background;
   const handleCloseModal = () => navigate(-1);
 
   return (
@@ -107,9 +119,7 @@ function AppContent() {
           
           <Route path="/reset-password" element={
             <ProtectedRoute onlyUnauth>
-              <ResetPasswordProtected>
-                <ResetPassword />
-              </ResetPasswordProtected>
+              <ResetPassword />
             </ProtectedRoute>
           } />
 
@@ -134,7 +144,6 @@ function AppContent() {
               <Modal 
                 title="Детали ингредиента" 
                 onClose={handleCloseModal}
-                centerTitle={true}
               >
                 {currentIngredient ? (
                   <IngredientDetails />
@@ -150,7 +159,7 @@ function AppContent() {
   );
 }
 
-function App() {
+const App: FC = () => {
   return (
     <DndProvider backend={HTML5Backend}>
       <div className={styles.app}>
