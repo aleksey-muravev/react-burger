@@ -1,18 +1,23 @@
-import React, { useEffect } from 'react';
-import PropTypes from 'prop-types';
+import React, { FC, ReactNode, KeyboardEvent, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { CloseIcon } from '@ya.praktikum/react-developer-burger-ui-components';
 import ModalOverlay from '../ModalOverlay/ModalOverlay';
 import styles from './Modal.module.css';
 
-const Modal = ({ title, onClose, children }) => {
+interface ModalProps {
+  title?: string;
+  onClose: () => void;
+  children: ReactNode;
+}
+
+const Modal: FC<ModalProps> = ({ title, onClose, children }) => {
   useEffect(() => {
-    const handleEsc = (e) => {
+    const handleEsc = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
     };
     
-    document.addEventListener('keydown', handleEsc);
-    return () => document.removeEventListener('keydown', handleEsc);
+    document.addEventListener('keydown', handleEsc as unknown as EventListener);
+    return () => document.removeEventListener('keydown', handleEsc as unknown as EventListener);
   }, [onClose]);
 
   const modalsRoot = document.getElementById('modals');
@@ -31,6 +36,7 @@ const Modal = ({ title, onClose, children }) => {
             className={styles.closeButton} 
             onClick={onClose}
             data-testid="modal-close-button"
+            aria-label="Закрыть модальное окно"
           >
             <CloseIcon type="primary" />
           </button>
@@ -42,12 +48,6 @@ const Modal = ({ title, onClose, children }) => {
     </>,
     modalsRoot
   );
-};
-
-Modal.propTypes = {
-  title: PropTypes.string,
-  onClose: PropTypes.func.isRequired,
-  children: PropTypes.node.isRequired
 };
 
 export default Modal;

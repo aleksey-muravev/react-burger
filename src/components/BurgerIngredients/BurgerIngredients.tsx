@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useMemo, FC, useCallback } from 'react';
 import { Tab, CurrencyIcon } from '@ya.praktikum/react-developer-burger-ui-components';
 import { useDispatch, useSelector } from 'react-redux';
 import { useDrag } from 'react-dnd';
@@ -6,18 +6,45 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import IngredientCategory from './IngredientCategory/IngredientCategory';
 import styles from './BurgerIngredients.module.css';
 import { setCurrentIngredient, getIngredients } from '../../services/ingredients/actions';
+import { RootState } from '../../services/store';
+import type { Ingredient as IngredientType } from '../../utils/types';
+import { AnyAction } from '@reduxjs/toolkit';
 
-const Ingredient = ({ ingredient, onClick }) => {
+interface IngredientProps {
+  ingredient: IngredientType;
+  onClick: (ingredient: IngredientType) => void;
+}
+
+interface BurgerConstructorState {
+  bun: IngredientType | null;
+  ingredients: IngredientType[];
+}
+
+interface IngredientsState {
+  items: IngredientType[];
+  loading: boolean;
+  error: string | null;
+}
+
+const Ingredient: FC<IngredientProps> = ({ ingredient, onClick }) => {
   const [, dragRef] = useDrag({
     type: 'ingredient',
     item: { id: ingredient._id },
   });
 
+  // Создаем совместимый ref для drag-and-drop
+  const setDragRef = useCallback((node: HTMLDivElement | null) => {
+    if (node) {
+      dragRef(node);
+    }
+  }, [dragRef]);
+
   return (
     <div 
-      ref={dragRef}
+      ref={setDragRef}
       onClick={() => onClick(ingredient)}
       className={styles.ingredient}
+      data-testid={`ingredient-${ingredient._id}`}
     >
       <img src={ingredient.image} alt={ingredient.name} />
       <span className={`${styles.price} text text_type_digits-default`}>
@@ -28,25 +55,27 @@ const Ingredient = ({ ingredient, onClick }) => {
   );
 };
 
-const BurgerIngredients = () => {
-  const [currentTab, setCurrentTab] = useState('bun');
-  const tabsRef = useRef(null);
-  const ingredientsListRef = useRef(null);
+const BurgerIngredients: FC = () => {
+  const [currentTab, setCurrentTab] = useState<'bun' | 'sauce' | 'main'>('bun');
+  const tabsRef = useRef<HTMLDivElement>(null);
+  const ingredientsListRef = useRef<HTMLDivElement>(null);
   const categoriesRef = {
-    bun: useRef(null),
-    sauce: useRef(null),
-    main: useRef(null)
+    bun: useRef<HTMLDivElement>(null),
+    sauce: useRef<HTMLDivElement>(null),
+    main: useRef<HTMLDivElement>(null)
   };
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
   
-  const ingredients = useSelector(state => state.ingredients.items);
-  const { bun, ingredients: constructorIngredients } = useSelector(state => state.burgerConstructor);
+  const { items: ingredients } = useSelector((state: RootState) => state.ingredients as IngredientsState);
+  const { bun, ingredients: constructorIngredients } = useSelector(
+    (state: RootState) => state.burgerConstructor as BurgerConstructorState
+  );
 
   useEffect(() => {
     if (!ingredients.length) {
-      dispatch(getIngredients());
+      dispatch(getIngredients() as unknown as AnyAction);
     }
   }, [dispatch, ingredients.length]);
 
@@ -74,7 +103,7 @@ const BurgerIngredients = () => {
 
     const handleScroll = () => {
       const containerTop = container.getBoundingClientRect().top;
-      let closestCategory = null;
+      let closestCategory: 'bun' | 'sauce' | 'main' | null = null;
       let smallestDistance = Infinity;
 
       Object.entries(categoriesRef).forEach(([type, ref]) => {
@@ -84,7 +113,7 @@ const BurgerIngredients = () => {
           
           if (distance < smallestDistance) {
             smallestDistance = distance;
-            closestCategory = type;
+            closestCategory = type as 'bun' | 'sauce' | 'main';
           }
         }
       });
@@ -98,7 +127,7 @@ const BurgerIngredients = () => {
     return () => container.removeEventListener('scroll', handleScroll);
   }, [currentTab]);
 
-  const handleTabClick = (tab) => {
+  const handleTabClick = useCallback((tab: 'bun' | 'sauce' | 'main') => {
     setCurrentTab(tab);
     const categoryElement = categoriesRef[tab].current;
     
@@ -109,14 +138,14 @@ const BurgerIngredients = () => {
         behavior: 'smooth'
       });
     }
-  };
+  }, []);
 
-  const handleIngredientClick = (ingredient) => {
+  const handleIngredientClick = useCallback((ingredient: IngredientType) => {
     dispatch(setCurrentIngredient(ingredient));
     navigate(`/ingredients/${ingredient._id}`, {
       state: { background: location }
     });
-  };
+  }, [dispatch, navigate, location]);
 
   if (!ingredients.length) {
     return <div className="text text_type_main-default">Ингредиенты не найдены</div>;
@@ -138,12 +167,11 @@ const BurgerIngredients = () => {
 
       <div className={styles.ingredientsList} ref={ingredientsListRef}>
         {Object.entries(ingredientsByType).map(([type, items]) => (
-          <div key={type} ref={categoriesRef[type]}>
+          <div key={type} ref={categoriesRef[type as 'bun' | 'sauce' | 'main']}>
             <IngredientCategory
               title={type === 'bun' ? 'Булки' : type === 'sauce' ? 'Соусы' : 'Начинки'}
               items={items}
               onIngredientClick={handleIngredientClick}
-              IngredientComponent={Ingredient}
             />
           </div>
         ))}

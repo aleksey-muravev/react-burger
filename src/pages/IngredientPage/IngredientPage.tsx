@@ -4,9 +4,36 @@ import { useSelector } from 'react-redux';
 import IngredientDetails from '../../components/IngredientDetails/IngredientDetails';
 import styles from './IngredientPage.module.css';
 
+// Типы для Redux состояния
+type TIngredient = {
+  _id: string;
+  name: string;
+  type: string;
+  proteins: number;
+  fat: number;
+  carbohydrates: number;
+  calories: number;
+  price: number;
+  image: string;
+  image_mobile: string;
+  image_large: string;
+  __v: number;
+};
+
+type TIngredientsState = {
+  items: TIngredient[];
+  currentIngredient: TIngredient | null;
+  isLoading: boolean;
+  error: null | string;
+};
+
+type TRootState = {
+  ingredients: TIngredientsState;
+};
+
 export default function IngredientPage() {
-  const { id } = useParams();
-  const { items: ingredients, currentIngredient } = useSelector(state => state.ingredients);
+  const { id } = useParams<{ id: string }>();
+  const { items: ingredients, currentIngredient } = useSelector((state: TRootState) => state.ingredients);
 
   if (!currentIngredient) {
     return <div className="text text_type_main-default mt-20">Загрузка ингредиента...</div>;

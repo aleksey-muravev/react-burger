@@ -1,18 +1,25 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, ChangeEvent, FormEvent } from 'react';
 import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { logout, updateUser } from '../../services/auth/actions';
 import { Input, Button } from '@ya.praktikum/react-developer-burger-ui-components';
 import styles from './Profile.module.css';
 import NotFound from '../../pages/NotFound/NotFound';
+import { AppDispatch, RootState } from '../../services/store';
+
+interface IUserForm {
+  name: string;
+  email: string;
+  password: string;
+}
 
 export default function Profile() {
-  const dispatch = useDispatch();
+  const dispatch: AppDispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
-  const { user } = useSelector(state => state.auth);
+  const { user } = useSelector((state: RootState) => state.auth);
   
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<IUserForm>({
     name: '',
     email: '',
     password: ''
@@ -30,7 +37,7 @@ export default function Profile() {
     }
   }, [user]);
 
-  const handleChange = (e) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setForm(prev => ({
       ...prev,
@@ -39,7 +46,7 @@ export default function Profile() {
     setIsChanged(true);
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
       await dispatch(updateUser(form));
@@ -50,12 +57,14 @@ export default function Profile() {
   };
 
   const handleCancel = () => {
-    setForm({
-      name: user.name,
-      email: user.email,
-      password: ''
-    });
-    setIsChanged(false);
+    if (user) {
+      setForm({
+        name: user.name,
+        email: user.email,
+        password: ''
+      });
+      setIsChanged(false);
+    }
   };
 
   const handleLogout = async () => {
@@ -67,7 +76,6 @@ export default function Profile() {
     }
   };
 
-  // Если путь содержит /orders, показываем только NotFound
   if (location.pathname.includes('/orders')) {
     return <NotFound />;
   }
@@ -113,34 +121,40 @@ export default function Profile() {
         <form onSubmit={handleSubmit} className={styles.form}>
           <div className="mb-6">
             <Input
-              type="text"
-              placeholder="Имя"
-              name="name"
+              type={'text'}
+              placeholder={'Имя'}
+              name={'name'}
               value={form.name}
               onChange={handleChange}
-              icon="EditIcon"
+              icon={'EditIcon'}
+              onPointerEnterCapture={undefined}
+              onPointerLeaveCapture={undefined}
             />
           </div>
           
           <div className="mb-6">
             <Input
-              type="email"
-              placeholder="Логин"
-              name="email"
+              type={'email'}
+              placeholder={'Логин'}
+              name={'email'}
               value={form.email}
               onChange={handleChange}
-              icon="EditIcon"
+              icon={'EditIcon'}
+              onPointerEnterCapture={undefined}
+              onPointerLeaveCapture={undefined}
             />
           </div>
           
           <div className="mb-6">
             <Input
-              type="password"
-              placeholder="Пароль"
-              name="password"
+              type={'password'}
+              placeholder={'Пароль'}
+              name={'password'}
               value={form.password}
               onChange={handleChange}
-              icon="EditIcon"
+              icon={'EditIcon'}
+              onPointerEnterCapture={undefined}
+              onPointerLeaveCapture={undefined}
             />
           </div>
           

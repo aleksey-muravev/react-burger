@@ -1,7 +1,6 @@
-import React, { useMemo, useState, useCallback } from 'react';
+import React, { useMemo, useState, useCallback, FC } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { createSelector } from 'reselect';
-import { useDrop } from 'react-dnd';
+import { useDrop, DropTargetMonitor } from 'react-dnd';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button, CurrencyIcon } from '@ya.praktikum/react-developer-burger-ui-components';
 import ConstructorElementWrapper from './ConstructorElement/ConstructorElement';
@@ -21,83 +20,69 @@ import {
   decrementIngredientCount,
   resetBunCount
 } from '../../services/ingredients/actions';
+import { RootState, AppDispatch, ConstructorIngredient } from '../../utils/types';
 
-const BurgerConstructor = () => {
-  const dispatch = useDispatch();
+interface DragItem {
+  id: string;
+  type: string;
+  index?: number;
+}
+
+const BurgerConstructor: FC = () => {
+  const dispatch: AppDispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
   const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   
-  // Встроенные мемоизированные селекторы
-  const selectIngredients = useMemo(
-    () => createSelector(
-      state => state.ingredients,
-      (ingredients) => ingredients.items
-    ),
-    []
+  const ingredients = useSelector((state: RootState) => state.ingredients.items);
+  const { bun, ingredients: constructorIngredients } = useSelector(
+    (state: RootState) => state.burgerConstructor
   );
 
-  const selectConstructor = useMemo(
-    () => createSelector(
-      state => state.burgerConstructor,
-      ({ bun, ingredients }) => ({ bun, ingredients })
-    ),
-    []
-  );
-
-  const selectAuth = useMemo(
-    () => createSelector(
-      state => state.auth,
-      (auth) => auth.isAuthenticated
-    ),
-    []
-  );
-
-  // Использование селекторов
-  const allIngredients = useSelector(selectIngredients);
-  const { bun, ingredients } = useSelector(selectConstructor);
-  const isAuthenticated = useSelector(selectAuth);
-
-  const [, dropTarget] = useDrop({
+  const [{ isHover }, dropTarget] = useDrop({
     accept: ['ingredient', 'constructorItem'],
-    drop(item) {
+    drop: (item: DragItem) => {
       if (item.type === 'constructorItem') return;
       
-      const ingredient = allIngredients.find(ing => ing._id === item.id);
+      const ingredient = ingredients.find(ing => ing._id === item.id);
       if (!ingredient) return;
 
       if (ingredient.type === 'bun') {
         dispatch(setConstructorBun(ingredient));
         dispatch(resetBunCount(ingredient._id));
       } else {
-        dispatch(addConstructorItem(ingredient));
+        const ingredientWithUuid: ConstructorIngredient = {
+          ...ingredient,
+          uuid: `${ingredient._id}-${Date.now()}`
+        };
+        dispatch(addConstructorItem(ingredientWithUuid));
         dispatch(incrementIngredientCount(ingredient._id));
       }
     },
+    collect: (monitor: DropTargetMonitor) => ({
+      isHover: monitor.isOver()
+    })
   });
 
-  const moveItem = useCallback((dragIndex, hoverIndex) => {
+  const moveItem = useCallback((dragIndex: number, hoverIndex: number) => {
     dispatch(moveConstructorItem(dragIndex, hoverIndex));
   }, [dispatch]);
 
   const totalPrice = useMemo(() => {
     const bunPrice = bun ? bun.price * 2 : 0;
-    const ingredientsPrice = ingredients.reduce((sum, item) => sum + item.price, 0);
+    const ingredientsPrice = constructorIngredients.reduce((sum, item) => sum + item.price, 0);
     return bunPrice + ingredientsPrice;
-  }, [bun, ingredients]);
+  }, [bun, constructorIngredients]);
 
-  const handleRemove = useCallback((uuid, ingredientId) => {
+  const handleRemove = useCallback((uuid: string, ingredientId: string) => {
     dispatch(removeConstructorItem(uuid));
     dispatch(decrementIngredientCount(ingredientId));
   }, [dispatch]);
 
-  const handleOrderClick = useCallback(async (e) => {
-    e.preventDefault();
-    
-    if (!isAuthenticated) {
-      navigate('/login', { state: { from: location } });
-      return;
+  const handleOrderClick = useCallback((e?: React.SyntheticEvent<Element, Event>) => {
+    if (e) {
+      e.preventDefault();
     }
     
     if (!bun) {
@@ -105,33 +90,36 @@ const BurgerConstructor = () => {
       return;
     }
 
-    try {
-      setIsProcessing(true);
-      const ingredientIds = [bun._id, ...ingredients.map(item => item._id), bun._id];
-      const result = await dispatch(createOrder(ingredientIds));
-      
-      if (result?.payload?.success) {
-        setIsOrderModalOpen(true);
-      }
-    } catch (error) {
-      if (error.message.includes('jwt') || error.message.includes('token')) {
-        alert('Сессия истекла. Пожалуйста, войдите снова');
-        navigate('/login', { state: { from: location } });
-      } else {
-        alert(error.message || 'Ошибка при оформлении заказа');
-      }
-    } finally {
-      setIsProcessing(false);
-    }
-  }, [isAuthenticated, bun, ingredients, dispatch, navigate, location]);
+    setIsProcessing(true);
+    const ingredientIds = [bun._id, ...constructorIngredients.map(item => item._id), bun._id];
+    
+    dispatch(createOrder(ingredientIds))
+      .then((result) => {
+        if (result?.payload?.success) {
+          setIsOrderModalOpen(true);
+        }
+      })
+      .catch((error) => {
+        alert(error instanceof Error ? error.message : 'Ошибка при оформлении заказа');
+      })
+      .finally(() => {
+        setIsProcessing(false);
+      });
+  }, [bun, constructorIngredients, dispatch]);
 
   const closeOrderModal = useCallback(() => {
     setIsOrderModalOpen(false);
     dispatch(clearConstructor());
   }, [dispatch]);
 
+  const setDropRef = useCallback((node: HTMLDivElement | null) => {
+    if (node) {
+      dropTarget(node);
+    }
+  }, [dropTarget]);
+
   return (
-    <div className={`${styles.container} ml-10`} ref={dropTarget}>
+    <div className={`${styles.container} ml-10`} ref={setDropRef}>
       {/* Верхняя булка */}
       {bun && (
         <div className={`${styles.constructorItem} ${styles.bun} mb-4`}>
@@ -147,14 +135,12 @@ const BurgerConstructor = () => {
 
       {/* Список ингредиентов */}
       <div className={styles.fillingsContainer}>
-        {ingredients.map((item, index) => (
+        {constructorIngredients.map((item, index) => (
           <ConstructorElementWrapper
             key={item.uuid}
             id={item.uuid}
             index={index}
             moveItem={moveItem}
-            type={undefined}
-            isLocked={false}
             text={item.name}
             price={item.price}
             thumbnail={item.image}
@@ -186,7 +172,7 @@ const BurgerConstructor = () => {
           type="primary"
           size="large"
           onClick={handleOrderClick}
-          disabled={!bun || ingredients.length === 0 || isProcessing}
+          disabled={!bun || constructorIngredients.length === 0 || isProcessing}
           htmlType="button"
         >
           {isProcessing ? 'Оформляем...' : 'Оформить заказ'}
@@ -203,4 +189,4 @@ const BurgerConstructor = () => {
   );
 };
 
-export default React.memo(BurgerConstructor);
+export default BurgerConstructor;

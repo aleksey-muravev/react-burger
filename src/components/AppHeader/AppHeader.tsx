@@ -1,20 +1,27 @@
-import React from 'react';
-import { NavLink, useLocation, useNavigate } from 'react-router-dom';
+import React, { MouseEvent } from 'react';
+import { NavLink, useLocation, useNavigate, Location, NavigateFunction } from 'react-router-dom';
 import {
   Logo,
   BurgerIcon,
   ListIcon,
-  ProfileIcon
+  ProfileIcon,
 } from '@ya.praktikum/react-developer-burger-ui-components';
 import { useSelector } from 'react-redux';
+import { RootState } from '../../services/store';
 import styles from './AppHeader.module.css';
 
-const AppHeader = () => {
-  const { isAuthenticated } = useSelector(state => state.auth);
-  const location = useLocation();
-  const navigate = useNavigate();
+interface AuthState {
+  isAuthenticated: boolean;
+}
 
-  const isActive = (path) => {
+type IconType = 'primary' | 'secondary';
+
+const AppHeader = () => {
+  const { isAuthenticated } = useSelector((state: RootState) => state.auth as AuthState);
+  const location: Location = useLocation();
+  const navigate: NavigateFunction = useNavigate();
+
+  const isActive = (path: string): boolean => {
     if (path === '/') {
       return location.pathname === '/' || 
              location.pathname.startsWith('/ingredients');
@@ -22,14 +29,18 @@ const AppHeader = () => {
     return location.pathname.startsWith(path);
   };
 
-  const handleFeedClick = (e) => {
+  const handleFeedClick = (e: MouseEvent<HTMLAnchorElement>): void => {
     e.preventDefault();
     navigate('/feed');
   };
 
-  const handleProfileClick = (e) => {
+  const handleProfileClick = (e: MouseEvent<HTMLAnchorElement>): void => {
     e.preventDefault();
     navigate(isAuthenticated ? '/profile' : '/login');
+  };
+
+  const getIconType = (path: string): IconType => {
+    return isActive(path) ? "primary" : "secondary";
   };
 
   return (
@@ -42,7 +53,7 @@ const AppHeader = () => {
               `${styles.navLink} pl-5 pr-5 ${isNavActive || isActive('/') ? styles.activeText : styles.inactiveText}`
             }
           >
-            <BurgerIcon type={isActive('/') ? "primary" : "secondary"} />
+            <BurgerIcon type={getIconType('/')} />
             <span className={`text text_type_main-default ml-2 ${isActive('/') ? styles.activeText : styles.inactiveText}`}>
               Конструктор
             </span>
@@ -55,7 +66,7 @@ const AppHeader = () => {
             }
             onClick={handleFeedClick}
           >
-            <ListIcon type={isActive('/feed') ? "primary" : "secondary"} />
+            <ListIcon type={getIconType('/feed')} />
             <span className={`text text_type_main-default ml-2 ${isActive('/feed') ? styles.activeText : styles.inactiveText}`}>
               Лента заказов
             </span>
@@ -76,7 +87,7 @@ const AppHeader = () => {
             }
             onClick={handleProfileClick}
           >
-            <ProfileIcon type={isActive('/profile') ? "primary" : "secondary"} />
+            <ProfileIcon type={getIconType('/profile')} />
             <span className={`text text_type_main-default ml-2 ${isActive('/profile') ? styles.activeText : styles.inactiveText}`}>
               {isAuthenticated ? "Личный кабинет" : "Войти"}
             </span>

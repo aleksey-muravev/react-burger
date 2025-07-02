@@ -1,34 +1,36 @@
 import { Input, Button } from '@ya.praktikum/react-developer-burger-ui-components';
 import { Link, useNavigate } from 'react-router-dom';
-import styles from './ResetPassword.module.css';
-import { useState } from 'react';
+import styles from './ForgotPassword.module.css';
+import { useState, FormEvent, ChangeEvent } from 'react';
 import { request } from '../../utils/api';
 
-export default function ResetPassword() {
-  const [password, setPassword] = useState('');
-  const [token, setToken] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
+export default function ForgotPassword() {
+  const [email, setEmail] = useState<string>('');
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
     try {
-      await request('/password-reset/reset', {
+      await request('/password-reset', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password, token })
+        body: JSON.stringify({ email })
       });
-      // Очищаем флаг после успешного сброса
-      localStorage.removeItem('forgotPasswordVisited');
-      navigate('/login', { state: { fromReset: true }, replace: true });
+      localStorage.setItem('forgotPasswordVisited', 'true');
+      navigate('/reset-password', { replace: true });
     } catch (err) {
-      setError(err.message);
+      setError((err as Error).message);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleEmailChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setEmail(e.target.value);
   };
 
   return (
@@ -43,22 +45,14 @@ export default function ResetPassword() {
 
       <form className={styles.form} onSubmit={handleSubmit}>
         <Input
-          type="password"
-          placeholder="Введите новый пароль"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          extraClass="mb-6"
-          icon="ShowIcon"
-          required
-        />
-        
-        <Input
-          type="text"
-          placeholder="Введите код из письма"
-          value={token}
-          onChange={(e) => setToken(e.target.value)}
-          extraClass="mb-6"
-          required
+          type={'email'}
+          placeholder={'Укажите e-mail'}
+          value={email}
+          onChange={handleEmailChange}
+          extraClass={'mb-6'}
+          required={true}
+          onPointerEnterCapture={() => {}}
+          onPointerLeaveCapture={() => {}}
         />
         
         <Button 
@@ -67,7 +61,7 @@ export default function ResetPassword() {
           size="medium"
           disabled={isLoading}
         >
-          {isLoading ? 'Сохранение...' : 'Сохранить'}
+          {isLoading ? 'Отправка...' : 'Восстановить'}
         </Button>
       </form>
 

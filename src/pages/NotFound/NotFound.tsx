@@ -1,4 +1,3 @@
-// NotFound.jsx
 import React from 'react';
 import { Button } from '@ya.praktikum/react-developer-burger-ui-components';
 import { useNavigate } from 'react-router-dom';
@@ -20,7 +19,7 @@ export default function NotFound() {
           size="large"
           onClick={() => navigate(-1)}
           htmlType="button"
-          className={styles.button}
+          extraClass={styles.button}
         >
           Назад
         </Button>

@@ -1,27 +1,36 @@
-import { useState } from 'react';
+import { useState, FormEvent, ChangeEvent } from 'react';
 import { Input, Button } from '@ya.praktikum/react-developer-burger-ui-components';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { login } from '../../services/auth/actions';
 import styles from './Login.module.css';
+import { AppDispatch, RootState } from '../../services/store'; // Импортируем типы хранилища
 
 export default function Login() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const dispatch = useDispatch();
+  const [email, setEmail] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
+  const dispatch: AppDispatch = useDispatch(); // Типизированный dispatch
   const navigate = useNavigate();
   const location = useLocation();
-  const { error, loading } = useSelector(state => state.auth);
+  const { error, loading } = useSelector((state: RootState) => state.auth);
   const from = location.state?.from?.pathname || '/';
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
-      await dispatch(login(email, password));
+      await dispatch(login({ email, password }));
       navigate(from, { replace: true });
     } catch (err) {
       console.error('Ошибка авторизации:', err);
     }
+  };
+
+  const handleEmailChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setEmail(e.target.value);
+  };
+
+  const handlePasswordChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setPassword(e.target.value);
   };
 
   return (
@@ -36,23 +45,27 @@ export default function Login() {
 
       <form className={styles.form} onSubmit={handleSubmit}>
         <Input
-          type="email"
-          placeholder="E-mail"
-          name="email"
+          type={'email'}
+          placeholder={'E-mail'}
+          name={'email'}
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          extraClass="mb-6"
-          required
+          onChange={handleEmailChange}
+          extraClass={'mb-6'}
+          required={true}
+          onPointerEnterCapture={() => {}}
+          onPointerLeaveCapture={() => {}}
         />
         
         <Input
-          type="password"
-          placeholder="Пароль"
-          name="password"
+          type={'password'}
+          placeholder={'Пароль'}
+          name={'password'}
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          extraClass="mb-6"
-          required
+          onChange={handlePasswordChange}
+          extraClass={'mb-6'}
+          required={true}
+          onPointerEnterCapture={() => {}}
+          onPointerLeaveCapture={() => {}}
         />
         
         <Button 

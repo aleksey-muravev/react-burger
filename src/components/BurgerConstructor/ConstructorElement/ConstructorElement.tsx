@@ -1,21 +1,37 @@
-import React from 'react';
-import PropTypes from 'prop-types';
+import React, { FC, useRef } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
-import { ConstructorElement, DragIcon } from '@ya.praktikum/react-developer-burger-ui-components';
+import { ConstructorElement as BurgerConstructorElement, DragIcon } from '@ya.praktikum/react-developer-burger-ui-components';
 import styles from './ConstructorElement.module.css';
 
-const ConstructorElementWrapper = ({ 
+interface ConstructorElementWrapperProps {
+  type?: 'top' | 'bottom';
+  isLocked?: boolean;
+  text: string;
+  price: number;
+  thumbnail: string;
+  handleClose?: () => void;
+  id?: string;
+  index?: number;
+  moveItem?: (dragIndex: number, hoverIndex: number) => void;
+}
+
+interface DragItem {
+  id: string;
+  index: number;
+}
+
+const ConstructorElementWrapper: FC<ConstructorElementWrapperProps> = ({
   type,
-  isLocked,
+  isLocked = false,
   text,
   price,
   thumbnail,
   handleClose,
-  id,
-  index,
-  moveItem
+  id = '',
+  index = 0,
+  moveItem = () => {}
 }) => {
-  const ref = React.useRef(null);
+  const ref = useRef<HTMLDivElement>(null);
   
   // Настройка перетаскивания
   const [{ isDragging }, drag] = useDrag({
@@ -27,7 +43,7 @@ const ConstructorElementWrapper = ({
   });
 
   // Настройка зоны сброса
-  const [, drop] = useDrop({
+  const [, drop] = useDrop<DragItem>({
     accept: 'constructorItem',
     hover(item, monitor) {
       if (!ref.current || isLocked) return;
@@ -36,10 +52,10 @@ const ConstructorElementWrapper = ({
 
       if (dragIndex === hoverIndex) return;
 
-      const hoverBoundingRect = ref.current?.getBoundingClientRect();
+      const hoverBoundingRect = ref.current.getBoundingClientRect();
       const hoverMiddleY = (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
       const clientOffset = monitor.getClientOffset();
-      const hoverClientY = clientOffset.y - hoverBoundingRect.top;
+      const hoverClientY = (clientOffset?.y ?? 0) - hoverBoundingRect.top;
 
       if (dragIndex < hoverIndex && hoverClientY < hoverMiddleY) return;
       if (dragIndex > hoverIndex && hoverClientY > hoverMiddleY) return;
@@ -56,9 +72,10 @@ const ConstructorElementWrapper = ({
       ref={ref}
       style={{ opacity: isDragging ? 0.5 : 1 }}
       className={styles.filling}
+      data-testid={`constructor-element-${index}`}
     >
       {!isLocked && <DragIcon type="primary" className={styles.dragIcon} />}
-      <ConstructorElement
+      <BurgerConstructorElement
         type={type}
         isLocked={isLocked}
         text={text}
@@ -68,27 +85,6 @@ const ConstructorElementWrapper = ({
       />
     </div>
   );
-};
-
-ConstructorElementWrapper.propTypes = {
-  type: PropTypes.oneOf(['top', 'bottom', undefined]),
-  isLocked: PropTypes.bool,
-  text: PropTypes.string.isRequired,
-  price: PropTypes.number.isRequired,
-  thumbnail: PropTypes.string.isRequired,
-  handleClose: PropTypes.func,
-  id: PropTypes.string,
-  index: PropTypes.number,
-  moveItem: PropTypes.func
-};
-
-ConstructorElementWrapper.defaultProps = {
-  type: undefined,
-  isLocked: false,
-  handleClose: undefined,
-  id: '',
-  index: 0,
-  moveItem: () => {}
 };
 
 export default ConstructorElementWrapper;
