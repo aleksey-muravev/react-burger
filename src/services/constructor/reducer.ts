@@ -3,22 +3,27 @@ import {
   REMOVE_CONSTRUCTOR_ITEM,
   SET_CONSTRUCTOR_BUN,
   CLEAR_CONSTRUCTOR,
-  MOVE_CONSTRUCTOR_ITEM
+  MOVE_CONSTRUCTOR_ITEM,
+  ConstructorState,
+  ConstructorActionTypes
 } from './types';
 
-const initialState = {
+const initialState: ConstructorState = {
   bun: null,
   ingredients: []
 };
 
-export const constructorReducer = (state = initialState, action) => {
+export const constructorReducer = (
+  state = initialState,
+  action: ConstructorActionTypes
+): ConstructorState => {
   switch (action.type) {
     case ADD_CONSTRUCTOR_ITEM:
       return {
         ...state,
         ingredients: [
           ...state.ingredients,
-          action.payload // Получаем готовый объект с UUID
+          action.payload
         ]
       };
       

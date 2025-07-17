@@ -1,6 +1,7 @@
-import { ThunkDispatch, AnyAction } from '@reduxjs/toolkit';
+import { ThunkAction, ThunkDispatch } from 'redux-thunk';
+import { AnyAction } from 'redux';
 
-// Типы данных приложения
+// Базовые типы данных
 export interface Ingredient {
   _id: string;
   name: string;
@@ -30,7 +31,11 @@ export interface Order {
   createdAt: string;
   updatedAt: string;
   number: number;
-  success?: boolean;
+}
+
+export interface ICookieOptions {
+  expires?: number | Date | string;
+  [key: string]: any;
 }
 
 export interface User {
@@ -43,11 +48,6 @@ export interface AuthResponse {
   accessToken: string;
   refreshToken: string;
   user: User;
-}
-
-export interface ApiResponse<T = any> {
-  success: boolean;
-  data?: T;
   message?: string;
 }
 
@@ -67,6 +67,7 @@ export interface ConstructorState {
 export interface AuthState {
   isAuthenticated: boolean;
   user: User | null;
+  accessToken: string | null;
   loading: boolean;
   error: string | null;
 }
@@ -77,26 +78,69 @@ export interface OrderState {
   error: string | null;
 }
 
-export interface AppState {
+// Новое состояние для деталей заказа
+export interface OrderDetailsState {
+  order: Order | null;
+  loading: boolean;
+  error: string | null;
+}
+
+export interface WsState {
+  wsConnected: boolean;
+  orders: Order[];
+  userOrders: Order[];
+  total: number;
+  totalToday: number;
+  error?: Event;
+}
+
+// Корневое состояние с добавлением orderDetails
+export interface RootState {
   ingredients: IngredientsState;
   burgerConstructor: ConstructorState;
   auth: AuthState;
   order: OrderState;
+  ws: WsState;
+  orderDetails: OrderDetailsState;
 }
 
 // Типы для Redux
-export type RootState = AppState;
 export type AppDispatch = ThunkDispatch<RootState, unknown, AnyAction>;
-
-// Декларация для store
-declare module '../services/store' {
-  export type RootState = AppState;
-  export type AppDispatch = ThunkDispatch<RootState, unknown, AnyAction>;
-}
+export type AppThunk<ReturnType = void> = ThunkAction<
+  ReturnType,
+  RootState,
+  unknown,
+  AnyAction
+>;
 
 // Типы для DnD
 export interface DragItem {
   id: string;
   type: string;
   index?: number;
+}
+
+// Дополнительные типы для API ответов
+export interface ApiResponse<T = any> {
+  success: boolean;
+  data?: T;
+  message?: string;
+}
+
+export interface UserResponse {
+  success: boolean;
+  user: User;
+  message?: string;
+}
+
+export interface OrderResponse {
+  success: boolean;
+  orders: Order[];
+  message?: string;
+}
+
+export interface SingleOrderResponse {
+  success: boolean;
+  orders: Order[];
+  message?: string;
 }

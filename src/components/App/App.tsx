@@ -1,7 +1,6 @@
 import React, { useEffect, FC } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import { useDispatch, useSelector } from 'react-redux';
 import { BrowserRouter, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import AppHeader from '../AppHeader/AppHeader';
 import BurgerIngredients from '../BurgerIngredients/BurgerIngredients';
@@ -12,17 +11,21 @@ import { ProtectedRoute } from '../ProtectedRoute/ProtectedRoute';
 import styles from './App.module.css';
 import Modal from '../Modal/Modal';
 import IngredientDetails from '../IngredientDetails/IngredientDetails';
-import { RootState, AppDispatch, Ingredient } from '../../utils/types';
-
-// Импорты страниц
+import { RootState, AppDispatch } from '../../utils/types';
 import Login from '../../pages/Login/Login';
 import Register from '../../pages/Register/Register';
 import ForgotPassword from '../../pages/ForgotPassword/ForgotPassword';
 import ResetPassword from '../../pages/ResetPassword/ResetPassword';
 import Profile from '../../pages/Profile/Profile';
-import Orders from '../../pages/Profile/Orders/Orders';
+import ProfileOrdersList from '../../pages/Profile/Orders/ProfileOrdersList';
+import ProfileOrderPage from '../../pages/Profile/Orders/ProfileOrderPage';
 import NotFound from '../../pages/NotFound/NotFound';
 import IngredientPage from '../../pages/IngredientPage/IngredientPage';
+import FeedPage from '../../pages/Feed/FeedPage';
+import OrderDetailsModal from '../OrderDetailsModal/OrderDetailsModal';
+import { useDispatch, useSelector } from 'react-redux';
+import OrderPage from '../../pages/Feed/OrderPage';
+import { useBackgroundLocation } from '../../hooks/useBackgroundLocation';
 
 interface LocationState {
   background?: {
@@ -32,13 +35,24 @@ interface LocationState {
     state: unknown;
     key: string;
   };
+  order?: {
+    _id: string;
+    number: number;
+    name: string;
+    status: string;
+    ingredients: string[];
+    createdAt: string;
+    ingredientsData: any[];
+    totalPrice: number;
+  };
 }
 
-const AppContent: FC = () => {
+const AppContent: React.FC = () => {
   const dispatch: AppDispatch = useDispatch();
   const location = useLocation();
   const state = location.state as LocationState;
   const navigate = useNavigate();
+  const background = useBackgroundLocation();
   
   const { 
     items: ingredients, 
@@ -46,6 +60,8 @@ const AppContent: FC = () => {
     error: ingredientsError,
     currentIngredient
   } = useSelector((state: RootState) => state.ingredients);
+
+  const { orders } = useSelector((state: RootState) => state.ws);
 
   useEffect(() => {
     dispatch(getIngredients());
@@ -77,8 +93,22 @@ const AppContent: FC = () => {
     );
   }
 
-  const background = state?.background;
   const handleCloseModal = () => navigate(-1);
+
+  const prepareOrderData = (order: any) => {
+    if (!order) return null;
+    
+    return {
+      ...order,
+      ingredientsInfo: ingredients.filter(ing => 
+        order.ingredients.includes(ing._id)
+      ),
+      total: order.ingredients.reduce((sum: number, id: string) => {
+        const ingredient = ingredients.find(item => item._id === id);
+        return sum + (ingredient?.price || 0);
+      }, 0)
+    };
+  };
 
   return (
     <>
@@ -123,14 +153,20 @@ const AppContent: FC = () => {
             </ProtectedRoute>
           } />
 
-          <Route path="/feed" element={<NotFound />} />
-
+          <Route path="/feed" element={<FeedPage />} />
+          <Route path="/feed/:number" element={<OrderPage />} />
+          
+          {/* Отдельный роут для страницы заказа профиля */}
+          <Route path="/profile/orders/:number" element={<ProfileOrderPage />} />
+          
           <Route path="/profile" element={
             <ProtectedRoute>
               <Profile />
             </ProtectedRoute>
           }>
-            <Route path="orders" element={<NotFound />} />
+            <Route index element={<Profile />} />
+            <Route path="orders" element={<ProfileOrdersList />} />
+            {/* Убрали отсюда path="orders/:number" */}
           </Route>
 
           <Route path="/ingredients/:id" element={<IngredientPage />} />
@@ -141,10 +177,7 @@ const AppContent: FC = () => {
         {background && (
           <Routes>
             <Route path="/ingredients/:id" element={
-              <Modal 
-                title="Детали ингредиента" 
-                onClose={handleCloseModal}
-              >
+              <Modal title="Детали ингредиента" onClose={handleCloseModal}>
                 {currentIngredient ? (
                   <IngredientDetails />
                 ) : (
@@ -152,6 +185,32 @@ const AppContent: FC = () => {
                 )}
               </Modal>
             } />
+            <Route
+              path="/feed/:number"
+              element={
+                <Modal onClose={handleCloseModal}>
+                  {state?.order ? (
+                    <OrderDetailsModal order={prepareOrderData(state.order)} />
+                  ) : (
+                    <div className="text text_type_main-medium">
+                      {orders.length ? 'Заказ не найден' : 'Загрузка данных...'}
+                    </div>
+                  )}
+                </Modal>
+              }
+            />
+            <Route
+              path="/profile/orders/:number"
+              element={
+                <Modal onClose={handleCloseModal}>
+                  {state?.order ? (
+                    <OrderDetailsModal order={prepareOrderData(state.order)} />
+                  ) : (
+                    <ProfileOrderPage />
+                  )}
+                </Modal>
+              }
+            />
           </Routes>
         )}
       </main>
@@ -159,7 +218,7 @@ const AppContent: FC = () => {
   );
 }
 
-const App: FC = () => {
+const App: React.FC = () => {
   return (
     <DndProvider backend={HTML5Backend}>
       <div className={styles.app}>

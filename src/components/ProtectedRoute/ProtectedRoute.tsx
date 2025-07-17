@@ -1,28 +1,42 @@
-import React, { ReactNode } from 'react';
-import { Navigate, useLocation, Location } from 'react-router-dom';
+import React, { ReactNode, useEffect } from 'react';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { RootState } from '../../utils/types'; 
+import { RootState } from '../../services/store';
+
 interface ProtectedRouteProps {
   children: ReactNode;
   onlyUnauth?: boolean;
+  checkAuth?: boolean;
 }
 
-export const ProtectedRoute = ({ children, onlyUnauth = false }: ProtectedRouteProps) => {
-  const location: Location = useLocation();
+export const ProtectedRoute = ({ 
+  children, 
+  onlyUnauth = false,
+  checkAuth = true
+}: ProtectedRouteProps) => {
+  const location = useLocation();
   const { isAuthenticated, loading } = useSelector((state: RootState) => state.auth);
 
-  if (loading) {
+  useEffect(() => {
+    if (checkAuth && !isAuthenticated && !loading) {
+      const token = localStorage.getItem('accessToken');
+      if (!token) {
+        console.log('No token found, redirecting to login');
+      }
+    }
+  }, [isAuthenticated, loading, checkAuth]);
+
+  if (loading && checkAuth) {
     return <div className="text text_type_main-medium mt-30">Проверка авторизации...</div>;
   }
 
   if (onlyUnauth && isAuthenticated) {
-    const from = location.state?.from || '/';
-    return <Navigate to={from} replace />;
+    return <Navigate to={location.state?.from || '/'} replace />;
   }
 
-  if (!onlyUnauth && !isAuthenticated) {
+  if (!onlyUnauth && !isAuthenticated && checkAuth) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  return children;
+  return <>{children}</>;
 };

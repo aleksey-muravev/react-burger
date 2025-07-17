@@ -20,7 +20,7 @@ import {
   decrementIngredientCount,
   resetBunCount
 } from '../../services/ingredients/actions';
-import { RootState, AppDispatch, ConstructorIngredient } from '../../utils/types';
+import { RootState, AppDispatch, ConstructorIngredient, Order } from '../../utils/types';
 
 interface DragItem {
   id: string;
@@ -39,6 +39,7 @@ const BurgerConstructor: FC = () => {
   const { bun, ingredients: constructorIngredients } = useSelector(
     (state: RootState) => state.burgerConstructor
   );
+  const { order, loading: orderLoading } = useSelector((state: RootState) => state.order);
 
   const [{ isHover }, dropTarget] = useDrop({
     accept: ['ingredient', 'constructorItem'],
@@ -76,14 +77,12 @@ const BurgerConstructor: FC = () => {
   }, [bun, constructorIngredients]);
 
   const handleRemove = useCallback((uuid: string, ingredientId: string) => {
-    dispatch(removeConstructorItem(uuid));
+    dispatch(removeConstructorItem(uuid, ingredientId));
     dispatch(decrementIngredientCount(ingredientId));
   }, [dispatch]);
 
   const handleOrderClick = useCallback((e?: React.SyntheticEvent<Element, Event>) => {
-    if (e) {
-      e.preventDefault();
-    }
+    if (e) e.preventDefault();
     
     if (!bun) {
       alert('Пожалуйста, выберите булку!');
@@ -94,9 +93,11 @@ const BurgerConstructor: FC = () => {
     const ingredientIds = [bun._id, ...constructorIngredients.map(item => item._id), bun._id];
     
     dispatch(createOrder(ingredientIds))
-      .then((result) => {
-        if (result?.payload?.success) {
+      .then((order) => {
+        if (order?.number) {
           setIsOrderModalOpen(true);
+        } else {
+          alert('Не удалось получить номер заказа');
         }
       })
       .catch((error) => {
@@ -113,14 +114,11 @@ const BurgerConstructor: FC = () => {
   }, [dispatch]);
 
   const setDropRef = useCallback((node: HTMLDivElement | null) => {
-    if (node) {
-      dropTarget(node);
-    }
+    if (node) dropTarget(node);
   }, [dropTarget]);
 
   return (
     <div className={`${styles.container} ml-10`} ref={setDropRef}>
-      {/* Верхняя булка */}
       {bun && (
         <div className={`${styles.constructorItem} ${styles.bun} mb-4`}>
           <ConstructorElementWrapper
@@ -133,7 +131,6 @@ const BurgerConstructor: FC = () => {
         </div>
       )}
 
-      {/* Список ингредиентов */}
       <div className={styles.fillingsContainer}>
         {constructorIngredients.map((item, index) => (
           <ConstructorElementWrapper
@@ -149,7 +146,6 @@ const BurgerConstructor: FC = () => {
         ))}
       </div>
 
-      {/* Нижняя булка */}
       {bun && (
         <div className={`${styles.constructorItem} ${styles.bun} mt-4`}>
           <ConstructorElementWrapper
@@ -162,7 +158,6 @@ const BurgerConstructor: FC = () => {
         </div>
       )}
 
-      {/* Блок с суммой и кнопкой */}
       <div className={`${styles.orderSection} mt-10`}>
         <div className={styles.totalPrice}>
           <span className="text text_type_digits-medium">{totalPrice}</span>
@@ -179,7 +174,6 @@ const BurgerConstructor: FC = () => {
         </Button>
       </div>
 
-      {/* Модальное окно */}
       {isOrderModalOpen && (
         <Modal onClose={closeOrderModal} title="">
           <OrderDetails />

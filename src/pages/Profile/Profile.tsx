@@ -4,8 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { logout, updateUser } from '../../services/auth/actions';
 import { Input, Button } from '@ya.praktikum/react-developer-burger-ui-components';
 import styles from './Profile.module.css';
-import NotFound from '../../pages/NotFound/NotFound';
-import { AppDispatch, RootState } from '../../services/store';
+import { RootState, AppDispatch } from '../../utils/types';
 
 interface IUserForm {
   name: string;
@@ -13,10 +12,18 @@ interface IUserForm {
   password: string;
 }
 
+// Вспомогательный компонент для Input с фильтрацией лишних пропсов
+const FilteredInput = (props: any) => {
+  const filteredProps = { ...props };
+  delete filteredProps.onPointerEnterCapture;
+  delete filteredProps.onPointerLeaveCapture;
+  return <Input {...filteredProps} />;
+};
+
 export default function Profile() {
   const dispatch: AppDispatch = useDispatch();
   const navigate = useNavigate();
-  const location = useLocation();
+  const location = useLocation(); 
   const { user } = useSelector((state: RootState) => state.auth);
   
   const [form, setForm] = useState<IUserForm>({
@@ -76,10 +83,6 @@ export default function Profile() {
     }
   };
 
-  if (location.pathname.includes('/orders')) {
-    return <NotFound />;
-  }
-
   return (
     <div className={styles.container}>
       <div className={styles.sidebar}>
@@ -113,71 +116,69 @@ export default function Profile() {
         </nav>
         
         <p className={`${styles.hint} text text_type_main-default text_color_inactive mt-20`}>
-          В этом разделе вы можете изменить свои персональные данные
+          {location.pathname.includes('/orders') 
+            ? 'В этом разделе вы можете просмотреть свою историю заказов'
+            : 'В этом разделе вы можете изменить свои персональные данные'}
         </p>
       </div>
       
       <div className={styles.content}>
-        <form onSubmit={handleSubmit} className={styles.form}>
-          <div className="mb-6">
-            <Input
-              type={'text'}
-              placeholder={'Имя'}
-              name={'name'}
-              value={form.name}
-              onChange={handleChange}
-              icon={'EditIcon'}
-              onPointerEnterCapture={undefined}
-              onPointerLeaveCapture={undefined}
-            />
-          </div>
-          
-          <div className="mb-6">
-            <Input
-              type={'email'}
-              placeholder={'Логин'}
-              name={'email'}
-              value={form.email}
-              onChange={handleChange}
-              icon={'EditIcon'}
-              onPointerEnterCapture={undefined}
-              onPointerLeaveCapture={undefined}
-            />
-          </div>
-          
-          <div className="mb-6">
-            <Input
-              type={'password'}
-              placeholder={'Пароль'}
-              name={'password'}
-              value={form.password}
-              onChange={handleChange}
-              icon={'EditIcon'}
-              onPointerEnterCapture={undefined}
-              onPointerLeaveCapture={undefined}
-            />
-          </div>
-          
-          {isChanged && (
-            <div className={styles.buttons}>
-              <Button 
-                type="secondary" 
-                htmlType="button"
-                onClick={handleCancel}
-              >
-                Отмена
-              </Button>
-              <Button 
-                type="primary" 
-                htmlType="submit"
-              >
-                Сохранить
-              </Button>
+        {!location.pathname.includes('/orders') ? (
+          <form onSubmit={handleSubmit} className={styles.form}>
+            <div className="mb-6">
+              <FilteredInput
+                type={'text'}
+                placeholder={'Имя'}
+                name={'name'}
+                value={form.name}
+                onChange={handleChange}
+                icon={'EditIcon'}
+              />
             </div>
-          )}
-        </form>
-        
-        <Outlet />
+            
+            <div className="mb-6">
+              <FilteredInput
+                type={'email'}
+                placeholder={'Логин'}
+                name={'email'}
+                value={form.email}
+                onChange={handleChange}
+                icon={'EditIcon'}
+              />
+            </div>
+            
+            <div className="mb-6">
+              <FilteredInput
+                type={'password'}
+                placeholder={'Пароль'}
+                name={'password'}
+                value={form.password}
+                onChange={handleChange}
+                icon={'EditIcon'}
+              />
+            </div>
+            
+            {isChanged && (
+              <div className={styles.buttons}>
+                <Button 
+                  type="secondary" 
+                  htmlType="button"
+                  onClick={handleCancel}
+                >
+                  Отмена
+                </Button>
+                <Button 
+                  type="primary" 
+                  htmlType="submit"
+                >
+                  Сохранить
+                </Button>
+              </div>
+            )}
+          </form>
+        ) : (
+          <Outlet />
+        )}
       </div>
     </div>
   );

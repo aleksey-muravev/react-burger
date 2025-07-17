@@ -1,86 +1,120 @@
+import { AppDispatch } from '../services/store';
 import { updateToken } from '../services/auth/actions';
-import { AppDispatch } from './types';
 
-interface RequestOptions extends RequestInit {
-  headers?: Record<string, string>;
-}
-
-interface ErrorResponse {
+export interface ApiResponse<T> {
+  success: boolean;
+  data?: T;
   message?: string;
-  [key: string]: any;
 }
 
-/**
- * Базовый запрос к API
- */
-export const request = async <T = any>(url: string, options: RequestOptions = {}): Promise<T> => {
-  const defaultHeaders = {
-    'Content-Type': 'application/json'
-  };
-
-  const response = await fetch(`https://norma.nomoreparties.space/api${url}`, {
-    ...options,
-    headers: {
-      ...defaultHeaders,
-      ...(options.headers || {})
-    }
-  });
-
-  if (!response.ok) {
-    const error: ErrorResponse = await response.json();
-    const errorMessage = error.message || `Ошибка ${response.status}: ${response.statusText}`;
-    throw new Error(errorMessage);
+export function checkResponse<T>(res: Response): Promise<T> {
+  if (!res.ok) {
+    return res.json().then(err => Promise.reject(err));
   }
+  return res.json();
+}
 
-  return response.json();
-};
+export async function request<T>(url: string, options: RequestInit = {}): Promise<T> {
+  try {
+    const res = await fetch(`https://norma.nomoreparties.space/api${url}`, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(options.headers || {})
+      }
+    });
+    return await checkResponse<T>(res);
+  } catch (err) {
+    console.error('Request failed:', err);
+    throw err;
+  }
+}
 
-/**
- * Запрос с автоматическим обновлением токена
- */
-export const requestWithRefresh = async <T = any>(
+export async function requestWithRefresh<T>(
   url: string,
-  options: RequestOptions = {},
+  options: RequestInit = {},
   dispatch: AppDispatch
-): Promise<T> => {
+): Promise<T> {
   try {
     return await request<T>(url, options);
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
+  } catch (err) {
+    const error = err as { message?: string; status?: number };
     
-    if (errorMessage.includes('jwt expired') || 
-        errorMessage.includes('token') || 
-        errorMessage.includes('401')) {
+    if (error.message === 'jwt expired' || error.status === 401) {
       try {
-        const newToken = await dispatch(updateToken());
+        // Явное приведение типа для dispatch
+        const result = await dispatch<any>(updateToken());
         
-        const newOptions: RequestOptions = {
+        // Безопасное извлечение токена
+        const accessToken = result?.accessToken;
+        if (!accessToken) {
+          throw new Error('Failed to refresh token');
+        }
+
+        const newOptions = {
           ...options,
           headers: {
             ...options.headers,
-            Authorization: `Bearer ${newToken}`
+            Authorization: accessToken
           }
         };
-
+        
         return await request<T>(url, newOptions);
       } catch (refreshError) {
-        throw new Error('Необходима повторная авторизация');
+        console.error('Token refresh failed:', refreshError);
+        throw refreshError;
       }
     }
     
-    throw error instanceof Error ? error : new Error(String(error));
+    throw err;
   }
-};
+}
 
-/**
- * Получение заголовков с токеном
- */
-export const getAuthHeaders = (token: string): { Authorization: string } => {
-  if (!token) {
-    throw new Error('Токен не предоставлен');
-  }
+export function createSocketConnection(url: string, token?: string): WebSocket {
+  const wsUrl = token 
+    ? `wss://norma.nomoreparties.space${url}?token=${token}`
+    : `wss://norma.nomoreparties.space${url}`;
   
-  return {
-    Authorization: `Bearer ${token}`
+  const socket = new WebSocket(wsUrl);
+  
+  socket.onerror = (error) => {
+    console.error('WebSocket error:', error);
   };
-};
+  
+  return socket;
+}
+
+// Вспомогательные функции для работы с cookies
+export function getCookie(name: string): string | undefined {
+  const matches = document.cookie.match(
+    new RegExp('(?:^|; )' + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + '=([^;]*)')
+  );
+  return matches ? decodeURIComponent(matches[1]) : undefined;
+}
+
+export function setCookie(
+  name: string,
+  value: string,
+  options: { [key: string]: any } = {}
+): void {
+  options = {
+    path: '/',
+    ...options
+  };
+
+  let updatedCookie = encodeURIComponent(name) + '=' + encodeURIComponent(value);
+
+  for (const optionKey in options) {
+    updatedCookie += '; ' + optionKey;
+    const optionValue = options[optionKey];
+    if (optionValue !== true) {
+      updatedCookie += '=' + optionValue;
+    }
+  }
+
+  document.cookie = updatedCookie;
+}
+
+export function deleteCookie(name: string): void {
+  setCookie(name, '', { 'max-age': -1 });
+}

@@ -6,17 +6,22 @@ import {
   CLEAR_CURRENT_INGREDIENT,
   INCREMENT_INGREDIENT_COUNT,
   DECREMENT_INGREDIENT_COUNT,
-  RESET_BUN_COUNT
+  RESET_BUN_COUNT,
+  IngredientsState,
+  IngredientsActionTypes
 } from './types';
 
-const initialState = {
+const initialState: IngredientsState = {
   items: [],
   loading: false,
   error: null,
   currentIngredient: null
 };
 
-export const ingredientsReducer = (state = initialState, action) => {
+export const ingredientsReducer = (
+  state = initialState,
+  action: IngredientsActionTypes
+): IngredientsState => {
   switch (action.type) {
     case GET_INGREDIENTS_REQUEST:
       return { ...state, loading: true, error: null };
@@ -41,8 +46,8 @@ export const ingredientsReducer = (state = initialState, action) => {
       return {
         ...state,
         items: state.items.map(item => 
-          item._id === action.payload && item.count > 0
-            ? { ...item, count: item.count - 1 } 
+          item._id === action.payload && (item.count || 0) > 0
+            ? { ...item, count: (item.count || 0) - 1 } 
             : item
         )
       };

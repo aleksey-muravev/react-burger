@@ -6,25 +6,14 @@ import Vector2 from '../../assets/svg/Vector2';
 import Vector3 from '../../assets/svg/Vector3';
 import styles from './OrderDetails.module.css';
 import { RootState } from '../../utils/types';
+import { shallowEqual } from 'react-redux';
 
-// Тип для данных заказа в Redux store
-interface OrderData {
-  success?: boolean;
-  name?: string;
-  order?: {
-    number: number;
-  };
-}
-
-const OrderDetailsComponent: FC = () => {
+const OrderDetails: FC = () => {
   const { order, loading, error } = useSelector((state: RootState) => ({
-    order: state.order.order as OrderData | null,
+    order: state.order.order,
     loading: state.order.loading,
     error: state.order.error
-  }));
-
-  // Отладочный вывод
-  console.log('Current order data:', order);
+  }), shallowEqual); // Добавляем shallowEqual для сравнения
 
   if (loading) {
     return (
@@ -44,7 +33,7 @@ const OrderDetailsComponent: FC = () => {
     );
   }
 
-  if (!order?.success) {
+  if (!order) {
     return (
       <div className={styles.container}>
         <p className="text text_type_main-default">Не удалось получить данные заказа</p>
@@ -52,23 +41,10 @@ const OrderDetailsComponent: FC = () => {
     );
   }
 
-  const orderNumber = order?.order?.number;
-
-  if (!orderNumber) {
-    console.error('Invalid order data structure:', order);
-    return (
-      <div className={styles.container}>
-        <p className="text text_type_main-default text_color_error">
-          Номер заказа недоступен
-        </p>
-      </div>
-    );
-  }
-
   return (
     <div className={styles.container}>
       <p className={`${styles.orderNumber} text text_type_digits-large`}>
-        {orderNumber}
+        {order.number}
       </p>
       
       <div className={styles.statusIndicator}>
@@ -90,4 +66,4 @@ const OrderDetailsComponent: FC = () => {
   );
 };
 
-export default OrderDetailsComponent;
+export default OrderDetails;
