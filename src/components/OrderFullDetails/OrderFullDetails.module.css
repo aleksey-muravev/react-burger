@@ -1,0 +1,96 @@
+.container {
+  width: 100%;
+  margin: 0 auto;
+  padding: 0;
+}
+
+.number {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.title {
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.status {
+  color: #00CCCC;
+  text-align: center;
+  margin-bottom: 60px;
+}
+
+.compositionTitle {
+  color: #F2F2F3;
+  margin: 40px 0 24px 0;
+}
+
+.ingredients {
+  max-height: 312px;
+  overflow-y: auto;
+  margin: 0;
+  padding-right: 24px;
+}
+
+.ingredient {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.ingredientImage {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(#131316, #131316) padding-box,
+              linear-gradient(45deg, #801AB2, #4C4CFF) border-box;
+  border: 2px solid transparent;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.ingredientImage img {
+  height: 50px;
+}
+
+.ingredientName {
+  flex-grow: 1;
+  color: #F2F2F3;
+}
+
+.ingredientPrice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 40px;
+}
+
+.totalPrice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Кастомный скролл */
+.ingredients::-webkit-scrollbar {
+  width: 8px;
+}
+
+.ingredients::-webkit-scrollbar-track {
+  background: #2F2F37;
+}
+
+.ingredients::-webkit-scrollbar-thumb {
+  background: #8585AD;
+}

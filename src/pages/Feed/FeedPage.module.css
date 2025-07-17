@@ -1,0 +1,82 @@
+.container {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 40px 20px;
+  font-family: 'Jet Brains Mono', monospace;
+}
+
+.mainTitle {
+  font-size: 36px;
+  font-weight: 700;
+  margin-bottom: 20px;
+  color: #F2F2F3;
+}
+
+.content {
+  display: flex;
+  gap: 60px;
+}
+
+.section {
+  flex: 1;
+}
+
+.sectionTitle {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 24px;
+  color: #F2F2F3;
+}
+
+.ordersContainer {
+  max-height: 80vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-right: 8px;
+}
+
+.statusContainer {
+  display: flex;
+  gap: 36px;
+  margin-bottom: 60px;
+}
+
+.statusColumn {
+  flex: 1;
+}
+
+.ordersGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.orderNumber {
+  color: #00CCCC;
+}
+
+.totalContainer {
+  margin-bottom: 60px;
+}
+
+.totalNumber {
+  color: #F2F2F3;
+  text-shadow: 0px 0px 16px rgba(51, 51, 255, 0.25), 
+               0px 0px 8px rgba(51, 51, 255, 0.25), 
+               0px 4px 32px rgba(51, 51, 255, 0.5);
+}
+
+/* Custom scrollbar */
+.ordersContainer::-webkit-scrollbar {
+  width: 8px;
+}
+
+.ordersContainer::-webkit-scrollbar-track {
+  background: #2F2F37;
+}
+
+.ordersContainer::-webkit-scrollbar-thumb {
+  background: #8585AD;
+}

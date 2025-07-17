@@ -1,0 +1,68 @@
+.container {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 120px 20px 40px;
+}
+
+.orderNumber {
+  text-align: center;
+}
+
+.orderName {
+  text-align: center;
+}
+
+.status {
+  color: #00CCCC;
+  text-align: center;
+}
+
+.compositionTitle {
+  text-align: left;
+}
+
+.ingredientsList {
+  max-height: 312px;
+  overflow-y: auto;
+  padding-right: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.ingredientRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.price {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.totalPrice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Кастомный скролл */
+.ingredientsList::-webkit-scrollbar {
+  width: 8px;
+}
+
+.ingredientsList::-webkit-scrollbar-track {
+  background: #2F2F37;
+}
+
+.ingredientsList::-webkit-scrollbar-thumb {
+  background: #8585AD;
+}

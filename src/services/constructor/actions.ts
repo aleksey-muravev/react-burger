@@ -11,11 +11,13 @@ import {
   decrementIngredientCount,
   resetBunCount
 } from '../ingredients/actions';
+import { AppThunk } from '../../utils/types';
+import { Ingredient, ConstructorIngredient } from '../../utils/types';
 
-export const addConstructorItem = (item) => (dispatch) => {
-  const itemWithId = {
+export const addConstructorItem = (item: Ingredient): AppThunk => (dispatch) => {
+  const itemWithId: ConstructorIngredient = {
     ...item,
-    uuid: uuidv4() 
+    uuid: uuidv4()
   };
 
   dispatch({
@@ -28,7 +30,7 @@ export const addConstructorItem = (item) => (dispatch) => {
   }
 };
 
-export const removeConstructorItem = (uuid, ingredientId) => (dispatch) => {
+export const removeConstructorItem = (uuid: string, ingredientId: string): AppThunk => (dispatch) => {
   dispatch({
     type: REMOVE_CONSTRUCTOR_ITEM,
     payload: uuid
@@ -36,10 +38,9 @@ export const removeConstructorItem = (uuid, ingredientId) => (dispatch) => {
   dispatch(decrementIngredientCount(ingredientId));
 };
 
-export const setConstructorBun = (bun) => (dispatch, getState) => {
+export const setConstructorBun = (bun: Ingredient): AppThunk => (dispatch, getState) => {
   const currentBun = getState().burgerConstructor.bun;
   
-  // Сбрасываем счетчик предыдущей булки
   if (currentBun) {
     dispatch(resetBunCount(currentBun._id));
   }
@@ -51,12 +52,12 @@ export const setConstructorBun = (bun) => (dispatch, getState) => {
   dispatch(resetBunCount(bun._id));
 };
 
-export const moveConstructorItem = (dragIndex, hoverIndex) => ({
+export const moveConstructorItem = (dragIndex: number, hoverIndex: number) => ({
   type: MOVE_CONSTRUCTOR_ITEM,
   payload: { dragIndex, hoverIndex }
-});
+} as const);
 
-export const clearConstructor = () => (dispatch, getState) => {
+export const clearConstructor = (): AppThunk => (dispatch, getState) => {
   const { bun, ingredients } = getState().burgerConstructor;
   
   dispatch({ type: CLEAR_CONSTRUCTOR });

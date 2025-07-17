@@ -4,7 +4,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { register } from '../../services/auth/actions';
 import styles from './Register.module.css';
-import { AppDispatch } from '../../services/store'; // Импортируем тип для dispatch
+import {AppDispatch } from '../../utils/types';
+
 
 export default function Register() {
   const [name, setName] = useState<string>('');
@@ -16,7 +17,7 @@ export default function Register() {
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
-      await dispatch(register({ email, password, name }));
+      await dispatch(register(email, password, name));
       navigate('/');
     } catch (err) {
       console.error('Ошибка регистрации:', err);

@@ -4,7 +4,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { login } from '../../services/auth/actions';
 import styles from './Login.module.css';
-import { AppDispatch, RootState } from '../../services/store'; // Импортируем типы хранилища
+import { RootState, AppDispatch } from '../../utils/types';
 
 export default function Login() {
   const [email, setEmail] = useState<string>('');
@@ -18,7 +18,7 @@ export default function Login() {
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
-      await dispatch(login({ email, password }));
+      await dispatch(login(email, password));
       navigate(from, { replace: true });
     } catch (err) {
       console.error('Ошибка авторизации:', err);

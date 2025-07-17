@@ -1,0 +1,19 @@
+.container {
+  max-width: 640px;
+  margin: 120px auto 0;
+  padding: 0 20px;
+  box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+  .container {
+    margin-top: 80px;
+    padding: 0 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    margin-top: 60px;
+  }
+}

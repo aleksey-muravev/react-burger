@@ -9,12 +9,19 @@ import {
   RESET_BUN_COUNT
 } from './types';
 import { request } from '../../utils/api';
+import { AppThunk } from '../../utils/types';
+import { Ingredient } from '../../utils/types';
 
-export const getIngredients = () => async (dispatch) => {
+interface IngredientsResponse {
+  success: boolean;
+  data: Ingredient[];
+}
+
+export const getIngredients = (): AppThunk => async (dispatch) => {
   dispatch({ type: GET_INGREDIENTS_REQUEST });
   
   try {
-    const data = await request('/ingredients');
+    const data = await request<IngredientsResponse>('/ingredients');
     
     if (data.success) {
       dispatch({
@@ -24,35 +31,36 @@ export const getIngredients = () => async (dispatch) => {
     } else {
       throw new Error('API returned unsuccessful response');
     }
-  } catch (err) {
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Failed to load ingredients';
     console.error('Ingredients fetch failed:', err);
     dispatch({
       type: GET_INGREDIENTS_FAILED,
-      payload: err.message || 'Failed to load ingredients'
+      payload: message
     });
   }
 };
 
-export const setCurrentIngredient = (ingredient) => ({
+export const setCurrentIngredient = (ingredient: Ingredient) => ({
   type: SET_CURRENT_INGREDIENT,
   payload: ingredient
-});
+} as const);
 
 export const clearCurrentIngredient = () => ({
   type: CLEAR_CURRENT_INGREDIENT
-});
+} as const);
 
-export const incrementIngredientCount = (id) => ({
+export const incrementIngredientCount = (id: string) => ({
   type: INCREMENT_INGREDIENT_COUNT,
   payload: id
-});
+} as const);
 
-export const decrementIngredientCount = (id) => ({
+export const decrementIngredientCount = (id: string) => ({
   type: DECREMENT_INGREDIENT_COUNT,
   payload: id
-});
+} as const);
 
-export const resetBunCount = (id) => ({
+export const resetBunCount = (id: string) => ({
   type: RESET_BUN_COUNT,
   payload: id
-});
+} as const);

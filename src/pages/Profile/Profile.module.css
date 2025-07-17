@@ -1,18 +1,24 @@
 .container {
   display: flex;
+  width: 100%;
   max-width: 1280px;
   margin: 120px auto 0;
   gap: 60px;
+  height: calc(100vh - 188px);
 }
 
 .sidebar {
   width: 320px;
+  flex-shrink: 0;
 }
 
 .content {
   flex-grow: 1;
-  max-width: 480px;
+  width: calc(100% - 380px); 
+  max-width: none; 
+  overflow: hidden; 
 }
+
 
 .navigation {
   display: flex;

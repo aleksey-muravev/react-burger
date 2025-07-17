@@ -4,17 +4,24 @@
   left: 50%;
   transform: translate(-50%, -50%);
   width: 720px;
+  max-height: 90vh;
   background: #1C1C21;
   border-radius: 40px;
-  z-index: 101;
+  z-index: 1000;
   padding: 40px;
   box-sizing: border-box;
+  overflow-y: auto; 
 }
 
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  position: sticky;
+  top: 0;
+  background: #1C1C21;
+  padding-bottom: 16px;
+  z-index: 1;
 }
 
 .closeButton {
@@ -22,8 +29,12 @@
   border: none;
   cursor: pointer;
   padding: 0;
+  position: absolute;
+  top: 40px;
+  right: 40px;
 }
 
 .content {
   margin-top: 24px;
+  padding-bottom: 20px; 
 }
