@@ -77,7 +77,7 @@ export const authReducer = (
         };
       }
 
-      setCookie('accessToken', accessToken);
+      setCookie('accessToken', accessToken, { expires: 20 * 60 });
       
       if (refreshToken) {
         localStorage.setItem('refreshToken', refreshToken);
@@ -114,7 +114,7 @@ export const authReducer = (
         };
       }
 
-      setCookie('accessToken', accessToken);
+      setCookie('accessToken', accessToken, { expires: 20 * 60 });
       
       return {
         ...state,

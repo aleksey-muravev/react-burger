@@ -14,6 +14,15 @@ export function checkResponse<T>(res: Response): Promise<T> {
   return res.json();
 }
 
+export function checkTokenExpiration(token: string): boolean {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload.exp * 1000 > Date.now() + 30000; // 30 секунд запаса
+  } catch {
+    return false;
+  }
+}
+
 export async function request<T>(url: string, options: RequestInit = {}): Promise<T> {
   try {
     const res = await fetch(`https://norma.nomoreparties.space/api${url}`, {
@@ -35,6 +44,25 @@ export async function requestWithRefresh<T>(
   options: RequestInit = {},
   dispatch: AppDispatch
 ): Promise<T> {
+  const token = getCookie('accessToken');
+  
+  // Предварительная проверка токена
+  if (token && !checkTokenExpiration(token)) {
+    try {
+      const result = await dispatch<any>(updateToken());
+      const newToken = result?.accessToken;
+      if (!newToken) throw new Error('Failed to refresh token');
+      
+      options.headers = {
+        ...options.headers,
+        Authorization: newToken
+      };
+    } catch (err) {
+      console.error('Token refresh failed:', err);
+      throw err;
+    }
+  }
+
   try {
     return await request<T>(url, options);
   } catch (err) {
@@ -43,18 +71,15 @@ export async function requestWithRefresh<T>(
     if (error.message === 'jwt expired' || error.status === 401) {
       try {
         const result = await dispatch<any>(updateToken());
-        const accessToken = result?.accessToken;
-        if (!accessToken) throw new Error('Failed to refresh token');
-
-        const newOptions = {
-          ...options,
-          headers: {
-            ...options.headers,
-            Authorization: accessToken
-          }
+        const newToken = result?.accessToken;
+        if (!newToken) throw new Error('Failed to refresh token');
+        
+        options.headers = {
+          ...options.headers,
+          Authorization: newToken
         };
         
-        return await request<T>(url, newOptions);
+        return await request<T>(url, options);
       } catch (refreshError) {
         console.error('Token refresh failed:', refreshError);
         throw refreshError;

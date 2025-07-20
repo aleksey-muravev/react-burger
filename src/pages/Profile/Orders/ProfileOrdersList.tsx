@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { wsUserConnectionStart, wsConnectionClosed } from '../../../services/websocket/actions';
 import { getCookie } from '../../../utils/cookie';
@@ -16,19 +16,46 @@ const ProfileOrdersList: React.FC = () => {
   const { userOrders, wsConnected, error } = useAppSelector((state: RootState) => state.ws);
   const { isAuthenticated, user } = useAppSelector((state: RootState) => state.auth);
   const ingredients = useAppSelector((state: RootState) => state.ingredients.items);
+  
+  const [connectionAttempts, setConnectionAttempts] = useState(0);
+  const [showLoader, setShowLoader] = useState(true);
+  const [connectionError, setConnectionError] = useState(false);
 
   useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+
     if (isAuthenticated && user) {
       const token = getCookie('accessToken');
       if (token) {
         dispatch(wsUserConnectionStart(token));
+        
+        // Таймер для отображения ошибки, если соединение не установилось
+        timeoutId = setTimeout(() => {
+          if (!wsConnected && connectionAttempts < 3) {
+            setConnectionAttempts(prev => prev + 1);
+            dispatch(wsUserConnectionStart(token));
+          } else if (!wsConnected) {
+            setShowLoader(false);
+            setConnectionError(true);
+          }
+        }, 5000);
       }
     }
 
     return () => {
+      clearTimeout(timeoutId);
       dispatch(wsConnectionClosed());
     };
-  }, [dispatch, isAuthenticated, user]);
+  }, [dispatch, isAuthenticated, user, connectionAttempts]);
+
+  useEffect(() => {
+    // Сбрасываем состояние ошибки при успешном подключении
+    if (wsConnected) {
+      setConnectionError(false);
+      setShowLoader(false);
+      setConnectionAttempts(0);
+    }
+  }, [wsConnected]);
 
   const enrichedOrders = userOrders.map((order: Order) => ({
     ...order,
@@ -85,21 +112,39 @@ const ProfileOrdersList: React.FC = () => {
     );
   }
 
-  if (error) {
+  if (connectionError) {
     return (
       <div className={styles.container}>
         <p className="text text_type_main-default mt-10 text_color_error">
-          {typeof error === 'string' ? error : 'Ошибка подключения'}
+          Не удалось подключиться к серверу. Пожалуйста, обновите страницу.
+        </p>
+        <button 
+          className={`${styles.retryButton} text text_type_main-default mt-4`}
+          onClick={() => window.location.reload()}
+        >
+          Обновить
+        </button>
+      </div>
+    );
+  }
+
+  if (showLoader || !wsConnected) {
+    return (
+      <div className={styles.container}>
+        <p className="text text_type_main-default mt-10">
+          {connectionAttempts > 0 
+            ? `Попытка подключения (${connectionAttempts}/3)...` 
+            : 'Подключаемся к серверу...'}
         </p>
       </div>
     );
   }
 
-  if (!wsConnected) {
+  if (error) {
     return (
       <div className={styles.container}>
-        <p className="text text_type_main-default mt-10">
-          Подключаемся к серверу...
+        <p className="text text_type_main-default mt-10 text_color_error">
+          {typeof error === 'string' ? error : 'Ошибка подключения'}
         </p>
       </div>
     );

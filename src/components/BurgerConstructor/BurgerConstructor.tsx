@@ -1,6 +1,7 @@
 import React, { useMemo, useState, useCallback } from 'react';
 import { useDrop, DropTargetMonitor } from 'react-dnd';
 import { Button, CurrencyIcon } from '@ya.praktikum/react-developer-burger-ui-components';
+import { useNavigate } from 'react-router-dom';
 import ConstructorElementWrapper from './ConstructorElement/ConstructorElement';
 import Modal from '../Modal/Modal';
 import OrderDetails from '../OrderDetails/OrderDetails';
@@ -30,6 +31,7 @@ interface DragItem {
 
 const BurgerConstructor = () => {
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   
@@ -37,6 +39,7 @@ const BurgerConstructor = () => {
   const { bun, ingredients: constructorIngredients } = useAppSelector(
     (state: RootState) => state.burgerConstructor
   );
+  const { user } = useAppSelector((state: RootState) => state.auth);
 
   const [{ isHover }, dropTarget] = useDrop({
     accept: ['ingredient', 'constructorItem'],
@@ -83,6 +86,11 @@ const BurgerConstructor = () => {
   const handleOrderClick = useCallback((e?: React.SyntheticEvent<Element, Event>) => {
     if (e) e.preventDefault();
     
+    if (!user) {
+      navigate('/login', { state: { from: '/' } });
+      return;
+    }
+
     if (!bun) {
       alert('Пожалуйста, выберите булку!');
       return;
@@ -103,7 +111,7 @@ const BurgerConstructor = () => {
       .finally(() => {
         setIsProcessing(false);
       });
-  }, [bun, constructorIngredients, dispatch]);
+  }, [user, bun, constructorIngredients, dispatch, navigate]);
 
   const closeOrderModal = useCallback(() => {
     setIsOrderModalOpen(false);

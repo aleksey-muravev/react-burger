@@ -1,7 +1,7 @@
 import React, { ReactNode, useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { useSelector } from 'react-redux';
-import { RootState } from '../../services/store';
+import { useAppSelector } from '../../hooks/useTypedRedux';
+import type { RootState } from '../../services/store';
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -15,7 +15,7 @@ export const ProtectedRoute = ({
   checkAuth = true
 }: ProtectedRouteProps) => {
   const location = useLocation();
-  const { isAuthenticated, loading } = useSelector((state: RootState) => state.auth);
+  const { isAuthenticated, loading } = useAppSelector((state: RootState) => state.auth);
 
   useEffect(() => {
     if (checkAuth && !isAuthenticated && !loading) {

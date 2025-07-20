@@ -1,7 +1,7 @@
 import React from 'react';
-import { useSelector } from 'react-redux';
 import styles from './IngredientDetails.module.css';
-import { RootState } from '../../services/store';
+import { useAppSelector } from '../../hooks/useTypedRedux';
+import type { RootState } from '../../services/store';
 
 interface Ingredient {
   image_large: string;
@@ -12,18 +12,14 @@ interface Ingredient {
   carbohydrates: number;
 }
 
-interface IngredientsState {
-  currentIngredient: Ingredient | null;
-}
-
 interface IngredientDetailsProps {
   className?: string;
 }
 
 const IngredientDetails = ({ className = '' }: IngredientDetailsProps) => {
-  const { currentIngredient } = useSelector((state: RootState) => ({
-    currentIngredient: (state.ingredients as IngredientsState).currentIngredient
-  }));
+  const currentIngredient = useAppSelector(
+    (state: RootState) => state.ingredients.currentIngredient
+  );
 
   if (!currentIngredient) {
     return <div className="text text_type_main-default">Ингредиент не загружен</div>;

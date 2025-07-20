@@ -37,7 +37,6 @@ interface UserResponse {
   message?: string;
 }
 
-// Кэш для предотвращения повторных запросов
 let tokenUpdateInProgress: Promise<{ accessToken: string }> | null = null;
 let userFetchInProgress: Promise<User> | null = null;
 
@@ -59,7 +58,7 @@ export const register = (
     });
     
     const accessToken = ensureBearerToken(res.accessToken);
-    setCookie('accessToken', accessToken, { expires: 20 * 60 }); // 20 минут
+    setCookie('accessToken', accessToken, { expires: 20 * 60 });
     localStorage.setItem('refreshToken', res.refreshToken);
     
     dispatch({
@@ -87,7 +86,7 @@ export const login = (
     });
     
     const accessToken = ensureBearerToken(res.accessToken);
-    setCookie('accessToken', accessToken, { expires: 20 * 60 }); // 20 минут
+    setCookie('accessToken', accessToken, { expires: 20 * 60 });
     localStorage.setItem('refreshToken', res.refreshToken);
     
     dispatch({
@@ -125,7 +124,6 @@ export const logout = (): AppThunk<Promise<void>> => async (dispatch) => {
 };
 
 export const updateToken = (): AppThunk<Promise<{ accessToken: string }>> => async (dispatch) => {
-  // Возвращаем существующий промис, если обновление уже в процессе
   if (tokenUpdateInProgress) {
     return tokenUpdateInProgress;
   }
@@ -143,7 +141,7 @@ export const updateToken = (): AppThunk<Promise<{ accessToken: string }>> => asy
       });
       
       const accessToken = ensureBearerToken(res.accessToken);
-      setCookie('accessToken', accessToken, { expires: 20 * 60 }); // 20 минут
+      setCookie('accessToken', accessToken, { expires: 20 * 60 });
       localStorage.setItem('refreshToken', res.refreshToken);
       
       dispatch({ 
@@ -165,7 +163,6 @@ export const updateToken = (): AppThunk<Promise<{ accessToken: string }>> => asy
 };
 
 export const getUser = (): AppThunk<Promise<User>> => async (dispatch, getState) => {
-  // Возвращаем существующий промис, если запрос уже в процессе
   if (userFetchInProgress) {
     return userFetchInProgress;
   }

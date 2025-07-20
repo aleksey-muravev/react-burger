@@ -18,38 +18,71 @@ export const socketMiddleware = (wsActions: TWsActions): Middleware<{}, RootStat
     let socket: WebSocket | null = null;
     let reconnectTimer: NodeJS.Timeout;
     const RECONNECT_DELAY = 3000;
-    const MAX_RECONNECT_ATTEMPTS = 5;
+    const MAX_RECONNECT_ATTEMPTS = 3;
     let reconnectAttempt = 0;
     let isConnected = false;
     let url = '';
     let isUserConnection = false;
+    let tokenRefreshInProgress = false;
+    const BASE_WS_URL = 'wss://norma.nomoreparties.space';
+    const USER_ORDERS_URL = '/orders';
+    const ALL_ORDERS_URL = '/orders/all';
 
     const getCleanToken = (token: string | undefined): string | null => {
       if (!token) return null;
       return token.replace('Bearer ', '').trim();
     };
 
+    const checkTokenExpiration = (token: string): boolean => {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        return payload.exp * 1000 > Date.now() + 30000; // 30 секунд запаса
+      } catch {
+        return false;
+      }
+    };
+
     const handleTokenRefresh = async (): Promise<string | null> => {
+      if (tokenRefreshInProgress) return null;
+      tokenRefreshInProgress = true;
+      
       try {
         const result = await (store.dispatch as AppDispatch)(updateToken());
-        return getCleanToken(result?.accessToken || getCookie('accessToken'));
+        const newToken = getCleanToken(result?.accessToken || getCookie('accessToken'));
+        tokenRefreshInProgress = false;
+        return newToken;
       } catch (err) {
         console.error('Token refresh failed:', err);
         store.dispatch({ type: wsActions.wsInvalidTokenError });
+        tokenRefreshInProgress = false;
         return null;
       }
     };
 
-    const connect = (newUrl: string, isUser: boolean) => {
-      isUserConnection = isUser;
-      url = newUrl;
-      
-      if (socket) {
-        socket.close();
+    const connect = async (newUrl: string, isUser: boolean) => {
+      if (isUser) {
+        const token = getCleanToken(getCookie('accessToken'));
+        if (!token || !checkTokenExpiration(token)) {
+          const newToken = await handleTokenRefresh();
+          if (!newToken) {
+            store.dispatch({ type: wsActions.wsConnectionError, payload: 'Token refresh failed' });
+            return;
+          }
+          url = `${BASE_WS_URL}${USER_ORDERS_URL}?token=${newToken}`;
+        } else {
+          url = newUrl;
+        }
+      } else {
+        url = newUrl;
       }
 
-      socket = new WebSocket(newUrl);
-      console.log(`[WS] Connecting to: ${newUrl}`);
+      if (socket && (isUserConnection === isUser)) {
+        socket.close(1000, 'Reconnecting');
+      }
+
+      isUserConnection = isUser;
+      socket = new WebSocket(url);
+      console.log(`[WS] Connecting to: ${url}`);
 
       socket.onopen = () => {
         isConnected = true;
@@ -69,7 +102,7 @@ export const socketMiddleware = (wsActions: TWsActions): Middleware<{}, RootStat
             if (isUserConnection) {
               const newToken = await handleTokenRefresh();
               if (newToken) {
-                connect(`wss://norma.nomoreparties.space/orders?token=${newToken}`, true);
+                connect(`${BASE_WS_URL}${USER_ORDERS_URL}?token=${newToken}`, true);
               }
             }
             return;
@@ -98,6 +131,7 @@ export const socketMiddleware = (wsActions: TWsActions): Middleware<{}, RootStat
 
       socket.onclose = (event) => {
         console.log(`[WS] Closed, code: ${event.code}, reason: ${event.reason}`);
+        console.log(`[WS] Reconnect attempt: ${reconnectAttempt}/${MAX_RECONNECT_ATTEMPTS}`);
         if (isConnected) {
           store.dispatch({ type: wsActions.wsConnectionClosed });
         }
@@ -114,10 +148,10 @@ export const socketMiddleware = (wsActions: TWsActions): Middleware<{}, RootStat
             if (isUserConnection) {
               const token = getCleanToken(getCookie('accessToken'));
               if (token) {
-                connect(`wss://norma.nomoreparties.space/orders?token=${token}`, true);
+                connect(`${BASE_WS_URL}${USER_ORDERS_URL}?token=${token}`, true);
               }
             } else {
-              connect('wss://norma.nomoreparties.space/orders/all', false);
+              connect(`${BASE_WS_URL}${ALL_ORDERS_URL}`, false);
             }
           }, delay);
         }
@@ -128,13 +162,13 @@ export const socketMiddleware = (wsActions: TWsActions): Middleware<{}, RootStat
       const { dispatch } = store;
 
       if (action.type === wsActions.wsInit) {
-        connect(action.payload, false);
+        connect(`${BASE_WS_URL}${ALL_ORDERS_URL}`, false);
       }
 
       if (action.type === wsActions.wsUserInit) {
         const token = getCleanToken(action.payload || getCookie('accessToken'));
         if (token) {
-          connect(`wss://norma.nomoreparties.space/orders?token=${token}`, true);
+          connect(`${BASE_WS_URL}${USER_ORDERS_URL}?token=${token}`, true);
         } else {
           dispatch({ type: wsActions.wsConnectionError, payload: 'Authorization required' });
         }

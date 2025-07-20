@@ -14,3 +14,5 @@ export const rootReducer = combineReducers({
   ws: wsReducer,
   orderDetails: orderDetailsReducer
 });
+
+export type RootState = ReturnType<typeof rootReducer>;

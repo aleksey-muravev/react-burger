@@ -49,6 +49,13 @@ export const wsReducer = (state = initialState, action: WsActions): WsState => {
         totalToday: action.payload.totalToday || 0
       };
 
+    case WsActionTypes.INVALID_TOKEN_ERROR:
+      return {
+        ...state,
+        wsConnected: false,
+        error: 'Invalid token'
+      };
+
     default:
       return state;
   }
