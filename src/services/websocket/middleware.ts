@@ -1,16 +1,19 @@
 import { Middleware } from 'redux';
 import { RootState, AppDispatch } from '../store';
-import {
-  wsConnectionSuccess,
-  wsConnectionError,
-  wsConnectionClosed,
-  wsGetMessage,
-  wsInvalidTokenError
-} from './actions';
 import { getCookie } from '../../utils/cookie';
 import { updateToken } from '../auth/actions';
 
-export const socketMiddleware = (): Middleware<{}, RootState> => {
+export type TWsActions = {
+  wsInit: string;
+  wsUserInit: string;
+  wsConnectionSuccess: string;
+  wsConnectionError: string;
+  wsConnectionClosed: string;
+  wsGetMessage: string;
+  wsInvalidTokenError: string;
+};
+
+export const socketMiddleware = (wsActions: TWsActions): Middleware<{}, RootState> => {
   return (store) => {
     let socket: WebSocket | null = null;
     let reconnectTimer: NodeJS.Timeout;
@@ -20,8 +23,6 @@ export const socketMiddleware = (): Middleware<{}, RootState> => {
     let isConnected = false;
     let url = '';
     let isUserConnection = false;
-    let lastMessageTime = 0;
-    const MESSAGE_THROTTLE = 1000; // 1 секунда
 
     const getCleanToken = (token: string | undefined): string | null => {
       if (!token) return null;
@@ -31,11 +32,10 @@ export const socketMiddleware = (): Middleware<{}, RootState> => {
     const handleTokenRefresh = async (): Promise<string | null> => {
       try {
         const result = await (store.dispatch as AppDispatch)(updateToken());
-        const newToken = result?.accessToken || getCookie('accessToken');
-        return getCleanToken(newToken);
+        return getCleanToken(result?.accessToken || getCookie('accessToken'));
       } catch (err) {
         console.error('Token refresh failed:', err);
-        store.dispatch(wsInvalidTokenError());
+        store.dispatch({ type: wsActions.wsInvalidTokenError });
         return null;
       }
     };
@@ -56,14 +56,10 @@ export const socketMiddleware = (): Middleware<{}, RootState> => {
         reconnectAttempt = 0;
         console.log('[WS] Connection established');
         clearTimeout(reconnectTimer);
-        store.dispatch(wsConnectionSuccess());
+        store.dispatch({ type: wsActions.wsConnectionSuccess });
       };
 
       socket.onmessage = async (event) => {
-        const now = Date.now();
-        if (now - lastMessageTime < MESSAGE_THROTTLE) return;
-        lastMessageTime = now;
-
         try {
           const data = JSON.parse(event.data);
           
@@ -80,12 +76,15 @@ export const socketMiddleware = (): Middleware<{}, RootState> => {
           }
 
           if (data.success) {
-            store.dispatch(wsGetMessage({
-              orders: Array.isArray(data.orders) ? data.orders : [],
-              total: data.total || 0,
-              totalToday: data.totalToday || 0,
-              isUser: isUserConnection
-            }));
+            store.dispatch({
+              type: wsActions.wsGetMessage,
+              payload: {
+                orders: Array.isArray(data.orders) ? data.orders : [],
+                total: data.total || 0,
+                totalToday: data.totalToday || 0,
+                isUser: isUserConnection
+              }
+            });
           }
         } catch (err) {
           console.error('[WS] Message error:', err);
@@ -94,13 +93,13 @@ export const socketMiddleware = (): Middleware<{}, RootState> => {
 
       socket.onerror = (event) => {
         console.error('[WS] Error:', event);
-        store.dispatch(wsConnectionError('Connection error'));
+        store.dispatch({ type: wsActions.wsConnectionError, payload: 'Connection error' });
       };
 
       socket.onclose = (event) => {
         console.log(`[WS] Closed, code: ${event.code}, reason: ${event.reason}`);
         if (isConnected) {
-          store.dispatch(wsConnectionClosed());
+          store.dispatch({ type: wsActions.wsConnectionClosed });
         }
         isConnected = false;
         
@@ -110,7 +109,7 @@ export const socketMiddleware = (): Middleware<{}, RootState> => {
         
         if ((isUserConnection || url.includes('/all')) && reconnectAttempt < MAX_RECONNECT_ATTEMPTS) {
           reconnectAttempt++;
-          const delay = RECONNECT_DELAY * Math.pow(2, reconnectAttempt - 1); // Exponential backoff
+          const delay = RECONNECT_DELAY * Math.pow(2, reconnectAttempt - 1);
           reconnectTimer = setTimeout(() => {
             if (isUserConnection) {
               const token = getCleanToken(getCookie('accessToken'));
@@ -128,20 +127,20 @@ export const socketMiddleware = (): Middleware<{}, RootState> => {
     return (next) => (action) => {
       const { dispatch } = store;
 
-      if (action.type === 'WS_CONNECTION_START') {
-        connect('wss://norma.nomoreparties.space/orders/all', false);
+      if (action.type === wsActions.wsInit) {
+        connect(action.payload, false);
       }
 
-      if (action.type === 'WS_USER_CONNECTION_START') {
+      if (action.type === wsActions.wsUserInit) {
         const token = getCleanToken(action.payload || getCookie('accessToken'));
         if (token) {
           connect(`wss://norma.nomoreparties.space/orders?token=${token}`, true);
         } else {
-          dispatch(wsConnectionError('Authorization required'));
+          dispatch({ type: wsActions.wsConnectionError, payload: 'Authorization required' });
         }
       }
 
-      if (action.type === 'WS_CONNECTION_CLOSED' && socket) {
+      if (action.type === wsActions.wsConnectionClosed && socket) {
         clearTimeout(reconnectTimer);
         socket.close(1000, 'Normal closure');
         socket = null;

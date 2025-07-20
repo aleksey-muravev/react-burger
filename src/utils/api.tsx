@@ -42,14 +42,9 @@ export async function requestWithRefresh<T>(
     
     if (error.message === 'jwt expired' || error.status === 401) {
       try {
-        // Явное приведение типа для dispatch
         const result = await dispatch<any>(updateToken());
-        
-        // Безопасное извлечение токена
         const accessToken = result?.accessToken;
-        if (!accessToken) {
-          throw new Error('Failed to refresh token');
-        }
+        if (!accessToken) throw new Error('Failed to refresh token');
 
         const newOptions = {
           ...options,
@@ -84,10 +79,9 @@ export function createSocketConnection(url: string, token?: string): WebSocket {
   return socket;
 }
 
-// Вспомогательные функции для работы с cookies
 export function getCookie(name: string): string | undefined {
   const matches = document.cookie.match(
-    new RegExp('(?:^|; )' + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + '=([^;]*)')
+    new RegExp('(?:^|; )' + name.replace(/([.$?*|{}()[\]\\/+^])/g, '\\$1') + '=([^;]*)')
   );
   return matches ? decodeURIComponent(matches[1]) : undefined;
 }

@@ -1,14 +1,14 @@
 import {
+  IngredientsState,
+  IngredientsActions,
   GET_INGREDIENTS_REQUEST,
   GET_INGREDIENTS_SUCCESS,
   GET_INGREDIENTS_FAILED,
-  SET_CURRENT_INGREDIENT,
-  CLEAR_CURRENT_INGREDIENT,
   INCREMENT_INGREDIENT_COUNT,
   DECREMENT_INGREDIENT_COUNT,
   RESET_BUN_COUNT,
-  IngredientsState,
-  IngredientsActionTypes
+  SET_CURRENT_INGREDIENT,
+  CLEAR_CURRENT_INGREDIENT
 } from './types';
 
 const initialState: IngredientsState = {
@@ -20,19 +20,18 @@ const initialState: IngredientsState = {
 
 export const ingredientsReducer = (
   state = initialState,
-  action: IngredientsActionTypes
+  action: IngredientsActions
 ): IngredientsState => {
   switch (action.type) {
     case GET_INGREDIENTS_REQUEST:
       return { ...state, loading: true, error: null };
+    
     case GET_INGREDIENTS_SUCCESS:
-      return { ...state, items: action.payload, loading: false };
+      return { ...state, loading: false, items: action.payload };
+    
     case GET_INGREDIENTS_FAILED:
       return { ...state, loading: false, error: action.payload };
-    case SET_CURRENT_INGREDIENT:
-      return { ...state, currentIngredient: action.payload };
-    case CLEAR_CURRENT_INGREDIENT:
-      return { ...state, currentIngredient: null };
+    
     case INCREMENT_INGREDIENT_COUNT:
       return {
         ...state,
@@ -42,15 +41,17 @@ export const ingredientsReducer = (
             : item
         )
       };
+    
     case DECREMENT_INGREDIENT_COUNT:
       return {
         ...state,
         items: state.items.map(item => 
-          item._id === action.payload && (item.count || 0) > 0
-            ? { ...item, count: (item.count || 0) - 1 } 
+          item._id === action.payload 
+            ? { ...item, count: Math.max((item.count || 0) - 1, 0) } 
             : item
         )
       };
+    
     case RESET_BUN_COUNT:
       return {
         ...state,
@@ -60,6 +61,13 @@ export const ingredientsReducer = (
             : item
         )
       };
+    
+    case SET_CURRENT_INGREDIENT:
+      return { ...state, currentIngredient: action.payload };
+    
+    case CLEAR_CURRENT_INGREDIENT:
+      return { ...state, currentIngredient: null };
+    
     default:
       return state;
   }

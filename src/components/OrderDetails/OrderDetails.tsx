@@ -1,19 +1,19 @@
 import React, { FC } from 'react';
-import { useSelector } from 'react-redux';
 import { CheckMarkIcon } from '@ya.praktikum/react-developer-burger-ui-components';
 import Vector1 from '../../assets/svg/Vector1';
 import Vector2 from '../../assets/svg/Vector2';
 import Vector3 from '../../assets/svg/Vector3';
 import styles from './OrderDetails.module.css';
-import { RootState } from '../../utils/types';
+import { useAppSelector } from '../../hooks/useTypedRedux';
+import type { RootState } from '../../services/store';
 import { shallowEqual } from 'react-redux';
 
 const OrderDetails: FC = () => {
-  const { order, loading, error } = useSelector((state: RootState) => ({
+  const { order, loading, error } = useAppSelector((state: RootState) => ({
     order: state.order.order,
     loading: state.order.loading,
     error: state.order.error
-  }), shallowEqual); // Добавляем shallowEqual для сравнения
+  }), shallowEqual);
 
   if (loading) {
     return (

@@ -7,7 +7,7 @@ interface WsState {
   userOrders: Order[];
   total: number;
   totalToday: number;
-  error?: Event | string; 
+  error?: Event | string;
 }
 
 const initialState: WsState = {

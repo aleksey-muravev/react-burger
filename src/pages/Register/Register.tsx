@@ -1,17 +1,15 @@
 import { useState, FormEvent, ChangeEvent } from 'react';
 import { Input, Button } from '@ya.praktikum/react-developer-burger-ui-components';
 import { Link, useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
 import { register } from '../../services/auth/actions';
 import styles from './Register.module.css';
-import {AppDispatch } from '../../utils/types';
-
+import { useAppDispatch } from '../../hooks/useTypedRedux';
 
 export default function Register() {
   const [name, setName] = useState<string>('');
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
-  const dispatch: AppDispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {

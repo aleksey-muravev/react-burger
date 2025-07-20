@@ -1,11 +1,11 @@
 import { 
   CREATE_ORDER_REQUEST, 
   CREATE_ORDER_SUCCESS, 
-  CREATE_ORDER_FAILED, 
-  CLEAR_ORDER 
+  CREATE_ORDER_FAILED,
+  CLEAR_ORDER
 } from './types';
 import { requestWithRefresh } from '../../utils/api';
-import { AppThunk } from '../../utils/types';
+import { AppThunk } from '../store';
 import { Order } from '../../utils/types';
 
 interface OrderResponse {
@@ -22,19 +22,23 @@ export const createOrder = (ingredients: string[]): AppThunk<Promise<Order>> =>
       const { auth } = getState();
       const accessToken = auth.accessToken;
       
-      if (!accessToken) throw new Error('Требуется авторизация');
+      if (!accessToken) throw new Error('Authorization required');
 
-      const data = await requestWithRefresh<OrderResponse>('/orders', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': accessToken
+      const data = await requestWithRefresh<OrderResponse>(
+        '/orders',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': accessToken
+          },
+          body: JSON.stringify({ ingredients })
         },
-        body: JSON.stringify({ ingredients })
-      }, dispatch);
+        dispatch
+      );
 
       if (!data.success) {
-        throw new Error(data.message || 'Ошибка сервера');
+        throw new Error(data.message || 'Server error');
       }
 
       dispatch({ 
@@ -43,15 +47,15 @@ export const createOrder = (ingredients: string[]): AppThunk<Promise<Order>> =>
       });
       return data.order;
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Неизвестная ошибка';
+      const message = err instanceof Error ? err.message : 'Unknown error';
       dispatch({ 
         type: CREATE_ORDER_FAILED, 
-        payload: message.includes('jwt') ? 'Сессия истекла' : message 
+        payload: message.includes('jwt') ? 'Session expired' : message 
       });
       throw err;
     }
   };
 
-export const clearOrder = () => {
-  return { type: CLEAR_ORDER } as const;
-};
+export const clearOrder = () => ({
+  type: CLEAR_ORDER
+});

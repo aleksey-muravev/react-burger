@@ -41,20 +41,20 @@ interface ClearCurrentIngredientAction {
 
 interface IncrementIngredientCountAction {
   type: typeof INCREMENT_INGREDIENT_COUNT;
-  payload: string; // id ингредиента
+  payload: string;
 }
 
 interface DecrementIngredientCountAction {
   type: typeof DECREMENT_INGREDIENT_COUNT;
-  payload: string; // id ингредиента
+  payload: string;
 }
 
 interface ResetBunCountAction {
   type: typeof RESET_BUN_COUNT;
-  payload: string; // id булки
+  payload: string;
 }
 
-export type IngredientsActionTypes =
+export type IngredientsActions =
   | GetIngredientsRequestAction
   | GetIngredientsSuccessAction
   | GetIngredientsFailedAction

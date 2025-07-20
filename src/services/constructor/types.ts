@@ -7,32 +7,32 @@ export const CLEAR_CONSTRUCTOR = 'CLEAR_CONSTRUCTOR';
 export const MOVE_CONSTRUCTOR_ITEM = 'MOVE_CONSTRUCTOR_ITEM';
 
 export interface ConstructorState {
-  bun: Ingredient | null;
-  ingredients: ConstructorIngredient[];
+  readonly bun: Ingredient | null;
+  readonly ingredients: ConstructorIngredient[];
 }
 
 interface AddConstructorItemAction {
-  type: typeof ADD_CONSTRUCTOR_ITEM;
-  payload: ConstructorIngredient;
+  readonly type: typeof ADD_CONSTRUCTOR_ITEM;
+  readonly payload: ConstructorIngredient;
 }
 
 interface RemoveConstructorItemAction {
-  type: typeof REMOVE_CONSTRUCTOR_ITEM;
-  payload: string; // uuid
+  readonly type: typeof REMOVE_CONSTRUCTOR_ITEM;
+  readonly payload: string; // uuid
 }
 
 interface SetConstructorBunAction {
-  type: typeof SET_CONSTRUCTOR_BUN;
-  payload: Ingredient;
+  readonly type: typeof SET_CONSTRUCTOR_BUN;
+  readonly payload: Ingredient;
 }
 
 interface ClearConstructorAction {
-  type: typeof CLEAR_CONSTRUCTOR;
+  readonly type: typeof CLEAR_CONSTRUCTOR;
 }
 
 interface MoveConstructorItemAction {
-  type: typeof MOVE_CONSTRUCTOR_ITEM;
-  payload: {
+  readonly type: typeof MOVE_CONSTRUCTOR_ITEM;
+  readonly payload: {
     dragIndex: number;
     hoverIndex: number;
   };

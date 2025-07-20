@@ -11,7 +11,7 @@ import {
   decrementIngredientCount,
   resetBunCount
 } from '../ingredients/actions';
-import { AppThunk } from '../../utils/types';
+import { AppThunk } from '../store';
 import { Ingredient, ConstructorIngredient } from '../../utils/types';
 
 export const addConstructorItem = (item: Ingredient): AppThunk => (dispatch) => {
@@ -55,7 +55,7 @@ export const setConstructorBun = (bun: Ingredient): AppThunk => (dispatch, getSt
 export const moveConstructorItem = (dragIndex: number, hoverIndex: number) => ({
   type: MOVE_CONSTRUCTOR_ITEM,
   payload: { dragIndex, hoverIndex }
-} as const);
+});
 
 export const clearConstructor = (): AppThunk => (dispatch, getState) => {
   const { bun, ingredients } = getState().burgerConstructor;

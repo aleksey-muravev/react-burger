@@ -1,17 +1,19 @@
 import React, { useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { RootState, Order } from '../../utils/types';
 import { wsConnectionStart, wsConnectionClosed } from '../../services/websocket/actions';
 import FeedOrderCard from '../../components/OrderCard/FeedOrderCard';
 import styles from './FeedPage.module.css';
+import { useAppDispatch, useAppSelector } from '../../hooks/useTypedRedux';
+import type { RootState } from '../../services/store';
+import type { Order } from '../../utils/types';
 
 const FeedPage: React.FC = () => {
-  const dispatch = useDispatch();
-  const { orders, total, totalToday } = useSelector((state: RootState) => state.ws);
-  const ingredients = useSelector((state: RootState) => state.ingredients.items);
+  const dispatch = useAppDispatch();
+  const { orders, total, totalToday } = useAppSelector((state: RootState) => state.ws);
+  const ingredients = useAppSelector((state: RootState) => state.ingredients.items);
 
   useEffect(() => {
-    dispatch(wsConnectionStart());
+    // Передаем URL для публичного канала заказов
+    dispatch(wsConnectionStart('wss://norma.nomoreparties.space/orders/all'));
     return () => {
       dispatch(wsConnectionClosed());
     };

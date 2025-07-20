@@ -4,7 +4,6 @@ import { useSelector } from 'react-redux';
 import IngredientDetails from '../../components/IngredientDetails/IngredientDetails';
 import styles from './IngredientPage.module.css';
 
-// Типы для Redux состояния
 type TIngredient = {
   _id: string;
   name: string;
@@ -32,8 +31,7 @@ type TRootState = {
 };
 
 export default function IngredientPage() {
-  const { id } = useParams<{ id: string }>();
-  const { items: ingredients, currentIngredient } = useSelector((state: TRootState) => state.ingredients);
+  const { currentIngredient } = useSelector((state: TRootState) => state.ingredients);
 
   if (!currentIngredient) {
     return <div className="text text_type_main-default mt-20">Загрузка ингредиента...</div>;

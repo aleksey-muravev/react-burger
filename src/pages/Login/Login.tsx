@@ -1,18 +1,18 @@
 import { useState, FormEvent, ChangeEvent } from 'react';
 import { Input, Button } from '@ya.praktikum/react-developer-burger-ui-components';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
 import { login } from '../../services/auth/actions';
 import styles from './Login.module.css';
-import { RootState, AppDispatch } from '../../utils/types';
+import { useAppDispatch, useAppSelector } from '../../hooks/useTypedRedux';
+import type { RootState } from '../../services/store';
 
 export default function Login() {
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
-  const dispatch: AppDispatch = useDispatch(); // Типизированный dispatch
+  const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const location = useLocation();
-  const { error, loading } = useSelector((state: RootState) => state.auth);
+  const { error, loading } = useAppSelector((state: RootState) => state.auth);
   const from = location.state?.from?.pathname || '/';
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {

@@ -1,4 +1,4 @@
-import React, { FC, KeyboardEvent, useEffect } from 'react';
+import React, { KeyboardEvent, useEffect, useCallback } from 'react';
 import ReactDOM from 'react-dom';
 import styles from './ModalOverlay.module.css';
 
@@ -6,17 +6,18 @@ interface ModalOverlayProps {
   onClose: () => void;
 }
 
-const ModalOverlay: FC<ModalOverlayProps> = ({ onClose }) => {
-  const handleEsc = (e: KeyboardEvent) => {
+const ModalOverlay = ({ onClose }: ModalOverlayProps) => {
+  const handleEsc = useCallback((e: KeyboardEvent) => {
     if (e.key === 'Escape') onClose();
-  };
+  }, [onClose]);
 
   useEffect(() => {
-    document.addEventListener('keydown', handleEsc as unknown as EventListener);
+    const escHandler = handleEsc as unknown as EventListener;
+    document.addEventListener('keydown', escHandler);
     return () => {
-      document.removeEventListener('keydown', handleEsc as unknown as EventListener);
+      document.removeEventListener('keydown', escHandler);
     };
-  }, [onClose]);
+  }, [handleEsc]);
 
   const modalsRoot = document.getElementById('modals');
 

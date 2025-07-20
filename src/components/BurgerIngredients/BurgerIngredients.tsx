@@ -1,38 +1,25 @@
-import React, { useState, useRef, useEffect, useMemo, FC, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { Tab, CurrencyIcon } from '@ya.praktikum/react-developer-burger-ui-components';
-import { useDispatch, useSelector } from 'react-redux';
 import { useDrag } from 'react-dnd';
 import { useNavigate, useLocation } from 'react-router-dom';
 import IngredientCategory from './IngredientCategory/IngredientCategory';
 import styles from './BurgerIngredients.module.css';
 import { setCurrentIngredient, getIngredients } from '../../services/ingredients/actions';
-import { RootState } from '../../services/store';
+import { useAppDispatch, useAppSelector } from '../../hooks/useTypedRedux';
+import type { RootState } from '../../services/store';
 import type { Ingredient as IngredientType } from '../../utils/types';
-import { AnyAction } from '@reduxjs/toolkit';
 
 interface IngredientProps {
   ingredient: IngredientType;
   onClick: (ingredient: IngredientType) => void;
 }
 
-interface BurgerConstructorState {
-  bun: IngredientType | null;
-  ingredients: IngredientType[];
-}
-
-interface IngredientsState {
-  items: IngredientType[];
-  loading: boolean;
-  error: string | null;
-}
-
-const Ingredient: FC<IngredientProps> = ({ ingredient, onClick }) => {
+const Ingredient = ({ ingredient, onClick }: IngredientProps) => {
   const [, dragRef] = useDrag({
     type: 'ingredient',
     item: { id: ingredient._id },
   });
 
-  // Создаем совместимый ref для drag-and-drop
   const setDragRef = useCallback((node: HTMLDivElement | null) => {
     if (node) {
       dragRef(node);
@@ -55,27 +42,27 @@ const Ingredient: FC<IngredientProps> = ({ ingredient, onClick }) => {
   );
 };
 
-const BurgerIngredients: FC = () => {
+const BurgerIngredients = () => {
   const [currentTab, setCurrentTab] = useState<'bun' | 'sauce' | 'main'>('bun');
   const tabsRef = useRef<HTMLDivElement>(null);
   const ingredientsListRef = useRef<HTMLDivElement>(null);
-  const categoriesRef = {
+  const categoriesRef = useRef({
     bun: useRef<HTMLDivElement>(null),
     sauce: useRef<HTMLDivElement>(null),
     main: useRef<HTMLDivElement>(null)
-  };
-  const dispatch = useDispatch();
+  });
+  const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const location = useLocation();
   
-  const { items: ingredients } = useSelector((state: RootState) => state.ingredients as IngredientsState);
-  const { bun, ingredients: constructorIngredients } = useSelector(
-    (state: RootState) => state.burgerConstructor as BurgerConstructorState
+  const { items: ingredients } = useAppSelector((state: RootState) => state.ingredients);
+  const { bun, ingredients: constructorIngredients } = useAppSelector(
+    (state: RootState) => state.burgerConstructor
   );
 
   useEffect(() => {
     if (!ingredients.length) {
-      dispatch(getIngredients() as unknown as AnyAction);
+      dispatch(getIngredients());
     }
   }, [dispatch, ingredients.length]);
 
@@ -106,7 +93,7 @@ const BurgerIngredients: FC = () => {
       let closestCategory: 'bun' | 'sauce' | 'main' | null = null;
       let smallestDistance = Infinity;
 
-      Object.entries(categoriesRef).forEach(([type, ref]) => {
+      Object.entries(categoriesRef.current).forEach(([type, ref]) => {
         if (ref.current) {
           const categoryTop = ref.current.getBoundingClientRect().top;
           const distance = Math.abs(categoryTop - containerTop);
@@ -129,7 +116,7 @@ const BurgerIngredients: FC = () => {
 
   const handleTabClick = useCallback((tab: 'bun' | 'sauce' | 'main') => {
     setCurrentTab(tab);
-    const categoryElement = categoriesRef[tab].current;
+    const categoryElement = categoriesRef.current[tab].current;
     
     if (ingredientsListRef.current && categoryElement) {
       const scrollPosition = categoryElement.offsetTop - ingredientsListRef.current.offsetTop;
@@ -167,7 +154,7 @@ const BurgerIngredients: FC = () => {
 
       <div className={styles.ingredientsList} ref={ingredientsListRef}>
         {Object.entries(ingredientsByType).map(([type, items]) => (
-          <div key={type} ref={categoriesRef[type as 'bun' | 'sauce' | 'main']}>
+          <div key={type} ref={categoriesRef.current[type as 'bun' | 'sauce' | 'main']}>
             <IngredientCategory
               title={type === 'bun' ? 'Булки' : type === 'sauce' ? 'Соусы' : 'Начинки'}
               items={items}

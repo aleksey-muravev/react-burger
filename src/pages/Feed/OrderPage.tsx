@@ -1,28 +1,29 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
 import Modal from '../../components/Modal/Modal';
 import OrderFullDetails from '../../components/OrderFullDetails/OrderFullDetails';
 import OrderDetailsModal from '../../components/OrderDetailsModal/OrderDetailsModal';
-import { RootState, AppDispatch } from '../../utils/types';
 import { getOrder } from '../../services/order-details/actions';
+import { useAppDispatch, useAppSelector } from '../../hooks/useTypedRedux';
+import type { RootState } from '../../services/store';
+import type { Order, Ingredient } from '../../utils/types';
 
 const OrderPage: React.FC = () => {
   const { number } = useParams<{ number: string }>();
   const location = useLocation();
   const background = location.state?.background;
   const navigate = useNavigate();
-  const dispatch = useDispatch<AppDispatch>();
+  const dispatch = useAppDispatch();
   const [initialLoad, setInitialLoad] = useState(true);
 
-  const { orders } = useSelector((state: RootState) => state.ws);
-  const ingredients = useSelector((state: RootState) => state.ingredients.items);
-  const { order: orderFromApi, loading } = useSelector((state: RootState) => state.orderDetails);
+  const { orders } = useAppSelector((state: RootState) => state.ws);
+  const ingredients = useAppSelector((state: RootState) => state.ingredients.items);
+  const { order: orderFromApi, loading } = useAppSelector((state: RootState) => state.orderDetails);
 
   useEffect(() => {
     if (!number) return;
 
-    const orderFromFeed = orders.find(order => order.number === Number(number));
+    const orderFromFeed = orders.find((order: Order) => order.number === Number(number));
     if (orderFromFeed) {
       dispatch({ type: 'GET_ORDER_SUCCESS', payload: orderFromFeed });
       setInitialLoad(false);
@@ -38,20 +39,22 @@ const OrderPage: React.FC = () => {
     return <div className="text text_type_main-medium">Загрузка заказа...</div>;
   }
 
-  const currentOrder = orderFromApi || orders.find(order => order.number === Number(number));
+  const currentOrder = orderFromApi || orders.find((order: Order) => order.number === Number(number));
   
   if (!currentOrder) {
     return <div className="text text_type_main-medium">Заказ не найден</div>;
   }
 
-  const totalPrice = currentOrder.ingredients.reduce((sum, id) => {
-    const ingredient = ingredients.find(item => item._id === id);
+  const totalPrice = currentOrder.ingredients.reduce((sum: number, id: string) => {
+    const ingredient = ingredients.find((item: Ingredient) => item._id === id);
     return sum + (ingredient?.price || 0);
   }, 0);
 
   const orderData = {
     ...currentOrder,
-    ingredientsInfo: ingredients.filter(ing => currentOrder.ingredients.includes(ing._id)),
+    ingredientsInfo: ingredients.filter((ing: Ingredient) => 
+      currentOrder.ingredients.includes(ing._id)
+    ),
     total: totalPrice
   };
 

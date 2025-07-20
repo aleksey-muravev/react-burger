@@ -1,29 +1,30 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
-import Modal from '../../../components/Modal/Modal'; // Добавлен импорт Modal
-import OrderDetailsModal from '../../../components/OrderDetailsModal/OrderDetailsModal'; // Добавлен импорт OrderDetailsModal
+import Modal from '../../../components/Modal/Modal';
+import OrderDetailsModal from '../../../components/OrderDetailsModal/OrderDetailsModal';
 import OrderFullDetails from '../../../components/OrderFullDetails/OrderFullDetails';
-import { RootState, AppDispatch } from '../../../utils/types';
 import { getOrder } from '../../../services/order-details/actions';
 import styles from './ProfileOrderPage.module.css';
+import { useAppDispatch, useAppSelector } from '../../../hooks/useTypedRedux';
+import type { RootState } from '../../../services/store';
+import type { Order, Ingredient } from '../../../utils/types';
 
 const ProfileOrderPage: React.FC = () => {
   const { number } = useParams<{ number: string }>();
   const location = useLocation();
   const background = location.state?.background;
   const navigate = useNavigate();
-  const dispatch = useDispatch<AppDispatch>();
+  const dispatch = useAppDispatch();
   const [initialLoad, setInitialLoad] = useState(true);
 
-  const { userOrders } = useSelector((state: RootState) => state.ws);
-  const ingredients = useSelector((state: RootState) => state.ingredients.items);
-  const { order: orderFromApi, loading } = useSelector((state: RootState) => state.orderDetails);
+  const { userOrders } = useAppSelector((state: RootState) => state.ws);
+  const ingredients = useAppSelector((state: RootState) => state.ingredients.items);
+  const { order: orderFromApi, loading } = useAppSelector((state: RootState) => state.orderDetails);
 
   useEffect(() => {
     if (!number) return;
 
-    const orderFromHistory = userOrders.find(order => order.number === Number(number));
+    const orderFromHistory = userOrders.find((order: Order) => order.number === Number(number));
     if (orderFromHistory) {
       dispatch({ type: 'GET_ORDER_SUCCESS', payload: orderFromHistory });
       setInitialLoad(false);
@@ -43,7 +44,7 @@ const ProfileOrderPage: React.FC = () => {
     );
   }
 
-  const currentOrder = orderFromApi || userOrders.find(order => order.number === Number(number));
+  const currentOrder = orderFromApi || userOrders.find((order: Order) => order.number === Number(number));
   
   if (!currentOrder) {
     return (
@@ -53,14 +54,14 @@ const ProfileOrderPage: React.FC = () => {
     );
   }
 
-  const totalPrice = currentOrder.ingredients.reduce((sum, id) => {
-    const ingredient = ingredients.find(item => item._id === id);
+  const totalPrice = currentOrder.ingredients.reduce((sum: number, id: string) => {
+    const ingredient = ingredients.find((item: Ingredient) => item._id === id);
     return sum + (ingredient?.price || 0);
   }, 0);
 
   const orderData = {
     ...currentOrder,
-    ingredientsInfo: ingredients.filter(ing => currentOrder.ingredients.includes(ing._id)),
+    ingredientsInfo: ingredients.filter((ing: Ingredient) => currentOrder.ingredients.includes(ing._id)),
     total: totalPrice
   };
 

@@ -1,6 +1,5 @@
-import React, { FC } from 'react';
+import React from 'react';
 import { useSelector } from 'react-redux';
-import { CurrencyIcon } from '@ya.praktikum/react-developer-burger-ui-components';
 import styles from './IngredientDetails.module.css';
 import { RootState } from '../../services/store';
 
@@ -11,7 +10,6 @@ interface Ingredient {
   proteins: number;
   fat: number;
   carbohydrates: number;
-  // Add other properties if they exist in your ingredient object
 }
 
 interface IngredientsState {
@@ -22,7 +20,7 @@ interface IngredientDetailsProps {
   className?: string;
 }
 
-const IngredientDetails: FC<IngredientDetailsProps> = ({ className = '' }) => {
+const IngredientDetails = ({ className = '' }: IngredientDetailsProps) => {
   const { currentIngredient } = useSelector((state: RootState) => ({
     currentIngredient: (state.ingredients as IngredientsState).currentIngredient
   }));

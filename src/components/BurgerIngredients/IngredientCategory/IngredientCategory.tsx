@@ -1,6 +1,6 @@
-import React, { FC, forwardRef } from 'react';
+import React, { forwardRef } from 'react';
 import { useDrag } from 'react-dnd';
-import { Counter, CurrencyIcon } from '@ya.praktikum/react-developer-burger-ui-components';
+import { Counter, CurrencyIcon} from '@ya.praktikum/react-developer-burger-ui-components';
 import styles from './IngredientCategory.module.css';
 import type { Ingredient as IngredientType } from '../../../utils/types';
 
@@ -9,13 +9,12 @@ interface IngredientItemProps {
   onClick: (ingredient: IngredientType) => void;
 }
 
-const IngredientItem: FC<IngredientItemProps> = ({ ingredient, onClick }) => {
-  const [_, dragRef] = useDrag({
+const IngredientItem = ({ ingredient, onClick }: IngredientItemProps) => {
+  const [, dragRef] = useDrag({
     type: 'ingredient',
     item: { id: ingredient._id },
   });
 
-  // Создаем совместимый ref
   const compatibleRef = (node: HTMLDivElement | null) => {
     if (node) {
       dragRef(node);

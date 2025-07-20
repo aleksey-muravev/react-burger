@@ -11,21 +11,21 @@ export interface OrderState {
   error: string | null;
 }
 
-interface CreateOrderRequestAction {
+export interface CreateOrderRequestAction {
   type: typeof CREATE_ORDER_REQUEST;
 }
 
-interface CreateOrderSuccessAction {
+export interface CreateOrderSuccessAction {
   type: typeof CREATE_ORDER_SUCCESS;
   payload: Order;
 }
 
-interface CreateOrderFailedAction {
+export interface CreateOrderFailedAction {
   type: typeof CREATE_ORDER_FAILED;
   payload: string;
 }
 
-interface ClearOrderAction {
+export interface ClearOrderAction {
   type: typeof CLEAR_ORDER;
 }
 

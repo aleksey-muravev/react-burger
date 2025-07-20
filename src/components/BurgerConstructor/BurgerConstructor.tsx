@@ -1,7 +1,5 @@
-import React, { useMemo, useState, useCallback, FC } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import React, { useMemo, useState, useCallback } from 'react';
 import { useDrop, DropTargetMonitor } from 'react-dnd';
-import { useNavigate, useLocation } from 'react-router-dom';
 import { Button, CurrencyIcon } from '@ya.praktikum/react-developer-burger-ui-components';
 import ConstructorElementWrapper from './ConstructorElement/ConstructorElement';
 import Modal from '../Modal/Modal';
@@ -20,7 +18,9 @@ import {
   decrementIngredientCount,
   resetBunCount
 } from '../../services/ingredients/actions';
-import { RootState, AppDispatch, ConstructorIngredient, Order } from '../../utils/types';
+import { useAppDispatch, useAppSelector } from '../../hooks/useTypedRedux';
+import type { RootState } from '../../services/store';
+import type { ConstructorIngredient, Ingredient } from '../../utils/types';
 
 interface DragItem {
   id: string;
@@ -28,25 +28,22 @@ interface DragItem {
   index?: number;
 }
 
-const BurgerConstructor: FC = () => {
-  const dispatch: AppDispatch = useDispatch();
-  const navigate = useNavigate();
-  const location = useLocation();
+const BurgerConstructor = () => {
+  const dispatch = useAppDispatch();
   const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   
-  const ingredients = useSelector((state: RootState) => state.ingredients.items);
-  const { bun, ingredients: constructorIngredients } = useSelector(
+  const ingredients = useAppSelector((state: RootState) => state.ingredients.items);
+  const { bun, ingredients: constructorIngredients } = useAppSelector(
     (state: RootState) => state.burgerConstructor
   );
-  const { order, loading: orderLoading } = useSelector((state: RootState) => state.order);
 
   const [{ isHover }, dropTarget] = useDrop({
     accept: ['ingredient', 'constructorItem'],
     drop: (item: DragItem) => {
       if (item.type === 'constructorItem') return;
       
-      const ingredient = ingredients.find(ing => ing._id === item.id);
+      const ingredient = ingredients.find((ing: Ingredient) => ing._id === item.id);
       if (!ingredient) return;
 
       if (ingredient.type === 'bun') {
@@ -72,7 +69,9 @@ const BurgerConstructor: FC = () => {
 
   const totalPrice = useMemo(() => {
     const bunPrice = bun ? bun.price * 2 : 0;
-    const ingredientsPrice = constructorIngredients.reduce((sum, item) => sum + item.price, 0);
+    const ingredientsPrice = constructorIngredients.reduce(
+      (sum: number, item: ConstructorIngredient) => sum + item.price, 0
+    );
     return bunPrice + ingredientsPrice;
   }, [bun, constructorIngredients]);
 
@@ -90,17 +89,15 @@ const BurgerConstructor: FC = () => {
     }
 
     setIsProcessing(true);
-    const ingredientIds = [bun._id, ...constructorIngredients.map(item => item._id), bun._id];
+    const ingredientIds = [bun._id, ...constructorIngredients.map(
+      (item: ConstructorIngredient) => item._id
+    ), bun._id];
     
     dispatch(createOrder(ingredientIds))
-      .then((order) => {
-        if (order?.number) {
-          setIsOrderModalOpen(true);
-        } else {
-          alert('Не удалось получить номер заказа');
-        }
+      .then(() => {
+        setIsOrderModalOpen(true);
       })
-      .catch((error) => {
+      .catch((error: unknown) => {
         alert(error instanceof Error ? error.message : 'Ошибка при оформлении заказа');
       })
       .finally(() => {
@@ -132,7 +129,7 @@ const BurgerConstructor: FC = () => {
       )}
 
       <div className={styles.fillingsContainer}>
-        {constructorIngredients.map((item, index) => (
+        {constructorIngredients.map((item: ConstructorIngredient, index: number) => (
           <ConstructorElementWrapper
             key={item.uuid}
             id={item.uuid}

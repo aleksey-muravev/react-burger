@@ -1,21 +1,21 @@
 import React, { useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { RootState } from '../../../utils/types';
 import { wsUserConnectionStart, wsConnectionClosed } from '../../../services/websocket/actions';
 import { getCookie } from '../../../utils/cookie';
 import styles from './ProfileOrdersList.module.css';
-import { Ingredient } from '../../../utils/types';
 import { CurrencyIcon } from '@ya.praktikum/react-developer-burger-ui-components';
 import { formatDate } from '../../../utils/date';
+import { useAppDispatch, useAppSelector } from '../../../hooks/useTypedRedux';
+import type { RootState } from '../../../services/store';
+import type { Ingredient, Order } from '../../../utils/types';
 
 const ProfileOrdersList: React.FC = () => {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const location = useLocation();
-  const { userOrders, wsConnected, error } = useSelector((state: RootState) => state.ws);
-  const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
-  const ingredients = useSelector((state: RootState) => state.ingredients.items);
+  const { userOrders, wsConnected, error } = useAppSelector((state: RootState) => state.ws);
+  const { isAuthenticated, user } = useAppSelector((state: RootState) => state.auth);
+  const ingredients = useAppSelector((state: RootState) => state.ingredients.items);
 
   useEffect(() => {
     if (isAuthenticated && user) {
@@ -30,13 +30,13 @@ const ProfileOrdersList: React.FC = () => {
     };
   }, [dispatch, isAuthenticated, user]);
 
-  const enrichedOrders = userOrders.map(order => ({
+  const enrichedOrders = userOrders.map((order: Order) => ({
     ...order,
     ingredientsData: order.ingredients
-      .map(id => ingredients.find(ing => ing._id === id))
+      .map((id: string) => ingredients.find((ing: Ingredient) => ing._id === id))
       .filter(Boolean) as Ingredient[],
-    price: order.ingredients.reduce((sum, id) => {
-      const ingredient = ingredients.find(ing => ing._id === id);
+    price: order.ingredients.reduce((sum: number, id: string) => {
+      const ingredient = ingredients.find((ing: Ingredient) => ing._id === id);
       return sum + (ingredient?.price || 0);
     }, 0)
   }));
@@ -47,7 +47,7 @@ const ProfileOrdersList: React.FC = () => {
 
     return (
       <div className={styles.ingredientsPreview}>
-        {visibleIngredients.reverse().map((ingredient, index) => (
+        {visibleIngredients.reverse().map((ingredient: Ingredient, index: number) => (
           <div key={index} className={styles.ingredientCircle}>
             <img 
               src={ingredient.image_mobile} 
@@ -69,7 +69,7 @@ const ProfileOrdersList: React.FC = () => {
         background: location,
         order: {
           ...order,
-          ingredients: order.ingredientsData.map(i => i._id)
+          ingredients: order.ingredientsData.map((i: Ingredient) => i._id)
         }
       }
     });
@@ -109,7 +109,7 @@ const ProfileOrdersList: React.FC = () => {
     <div className={styles.container}>
       <div className={styles.ordersContainer}>
         {enrichedOrders.length > 0 ? (
-          enrichedOrders.map(order => (
+          enrichedOrders.map((order: typeof enrichedOrders[0]) => (
             <div 
               key={order._id}
               className={styles.orderCard}

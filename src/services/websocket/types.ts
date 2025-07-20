@@ -12,6 +12,7 @@ export enum WsActionTypes {
 
 export interface WsConnectionStart {
   type: WsActionTypes.CONNECTION_START;
+  payload: string;
 }
 
 export interface WsUserConnectionStart {

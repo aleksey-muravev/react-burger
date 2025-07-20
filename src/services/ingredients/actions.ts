@@ -2,14 +2,13 @@ import {
   GET_INGREDIENTS_REQUEST,
   GET_INGREDIENTS_SUCCESS,
   GET_INGREDIENTS_FAILED,
-  SET_CURRENT_INGREDIENT,
-  CLEAR_CURRENT_INGREDIENT,
   INCREMENT_INGREDIENT_COUNT,
   DECREMENT_INGREDIENT_COUNT,
-  RESET_BUN_COUNT
+  RESET_BUN_COUNT,
+  SET_CURRENT_INGREDIENT
 } from './types';
 import { request } from '../../utils/api';
-import { AppThunk } from '../../utils/types';
+import { AppThunk } from '../store';
 import { Ingredient } from '../../utils/types';
 
 interface IngredientsResponse {
@@ -22,7 +21,6 @@ export const getIngredients = (): AppThunk => async (dispatch) => {
   
   try {
     const data = await request<IngredientsResponse>('/ingredients');
-    
     if (data.success) {
       dispatch({
         type: GET_INGREDIENTS_SUCCESS,
@@ -31,9 +29,8 @@ export const getIngredients = (): AppThunk => async (dispatch) => {
     } else {
       throw new Error('API returned unsuccessful response');
     }
-  } catch (err: unknown) {
+  } catch (err) {
     const message = err instanceof Error ? err.message : 'Failed to load ingredients';
-    console.error('Ingredients fetch failed:', err);
     dispatch({
       type: GET_INGREDIENTS_FAILED,
       payload: message
@@ -41,26 +38,22 @@ export const getIngredients = (): AppThunk => async (dispatch) => {
   }
 };
 
-export const setCurrentIngredient = (ingredient: Ingredient) => ({
-  type: SET_CURRENT_INGREDIENT,
-  payload: ingredient
-} as const);
-
-export const clearCurrentIngredient = () => ({
-  type: CLEAR_CURRENT_INGREDIENT
-} as const);
-
 export const incrementIngredientCount = (id: string) => ({
   type: INCREMENT_INGREDIENT_COUNT,
   payload: id
-} as const);
+});
 
 export const decrementIngredientCount = (id: string) => ({
   type: DECREMENT_INGREDIENT_COUNT,
   payload: id
-} as const);
+});
 
 export const resetBunCount = (id: string) => ({
   type: RESET_BUN_COUNT,
   payload: id
-} as const);
+});
+
+export const setCurrentIngredient = (ingredient: Ingredient) => ({
+  type: SET_CURRENT_INGREDIENT,
+  payload: ingredient
+});

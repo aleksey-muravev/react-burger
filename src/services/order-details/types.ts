@@ -10,16 +10,16 @@ export interface OrderDetailsState {
   error: string | null;
 }
 
-interface GetOrderRequestAction {
+export interface GetOrderRequestAction {
   type: typeof GET_ORDER_REQUEST;
 }
 
-interface GetOrderSuccessAction {
+export interface GetOrderSuccessAction {
   type: typeof GET_ORDER_SUCCESS;
   payload: Order;
 }
 
-interface GetOrderFailedAction {
+export interface GetOrderFailedAction {
   type: typeof GET_ORDER_FAILED;
   payload: string;
 }

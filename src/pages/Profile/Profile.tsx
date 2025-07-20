@@ -1,10 +1,10 @@
 import { useState, useEffect, ChangeEvent, FormEvent } from 'react';
 import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
 import { logout, updateUser } from '../../services/auth/actions';
 import { Input, Button } from '@ya.praktikum/react-developer-burger-ui-components';
 import styles from './Profile.module.css';
-import { RootState, AppDispatch } from '../../utils/types';
+import { useAppDispatch, useAppSelector } from '../../hooks/useTypedRedux';
+import type { RootState } from '../../services/store';
 
 interface IUserForm {
   name: string;
@@ -21,10 +21,10 @@ const FilteredInput = (props: any) => {
 };
 
 export default function Profile() {
-  const dispatch: AppDispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const location = useLocation(); 
-  const { user } = useSelector((state: RootState) => state.auth);
+  const { user } = useAppSelector((state: RootState) => state.auth);
   
   const [form, setForm] = useState<IUserForm>({
     name: '',

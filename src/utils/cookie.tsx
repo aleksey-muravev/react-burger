@@ -1,22 +1,21 @@
-import { ICookieOptions } from './types';
+export interface ICookieOptions {
+  expires?: number | Date | string;
+  [key: string]: any;
+}
 
 export function setCookie(name: string, value: string, props: ICookieOptions = {}) {
   props = props || {};
   let exp = props.expires;
-  
-  if (typeof exp === 'number' && exp) {
+  if (typeof exp == 'number' && exp) {
     const d = new Date();
     d.setTime(d.getTime() + exp * 1000);
     exp = props.expires = d;
   }
-  
-  if (exp instanceof Date && exp.toUTCString) {
+  if (exp && exp instanceof Date) {
     props.expires = exp.toUTCString();
   }
-  
   value = encodeURIComponent(value);
   let updatedCookie = name + '=' + value;
-  
   for (const propName in props) {
     updatedCookie += '; ' + propName;
     const propValue = props[propName];
@@ -24,7 +23,6 @@ export function setCookie(name: string, value: string, props: ICookieOptions = {
       updatedCookie += '=' + propValue;
     }
   }
-  
   document.cookie = updatedCookie;
 }
 
@@ -35,6 +33,6 @@ export function getCookie(name: string): string | undefined {
   return matches ? decodeURIComponent(matches[1]) : undefined;
 }
 
-export function deleteCookie(name: string): void {
+export function deleteCookie(name: string) {
   setCookie(name, '', { expires: -1 });
 }

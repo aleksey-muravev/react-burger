@@ -1,4 +1,3 @@
-// src/services/store/rootReducer.ts
 import { combineReducers } from 'redux';
 import { ingredientsReducer } from '../../services/ingredients/reducer';
 import { constructorReducer } from '../../services/constructor/reducer';

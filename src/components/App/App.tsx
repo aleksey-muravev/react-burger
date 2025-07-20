@@ -1,4 +1,4 @@
-import React, { useEffect, FC } from 'react';
+import React, { useEffect } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { BrowserRouter, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
@@ -11,7 +11,6 @@ import { ProtectedRoute } from '../ProtectedRoute/ProtectedRoute';
 import styles from './App.module.css';
 import Modal from '../Modal/Modal';
 import IngredientDetails from '../IngredientDetails/IngredientDetails';
-import { RootState, AppDispatch } from '../../utils/types';
 import Login from '../../pages/Login/Login';
 import Register from '../../pages/Register/Register';
 import ForgotPassword from '../../pages/ForgotPassword/ForgotPassword';
@@ -23,9 +22,11 @@ import NotFound from '../../pages/NotFound/NotFound';
 import IngredientPage from '../../pages/IngredientPage/IngredientPage';
 import FeedPage from '../../pages/Feed/FeedPage';
 import OrderDetailsModal from '../OrderDetailsModal/OrderDetailsModal';
-import { useDispatch, useSelector } from 'react-redux';
 import OrderPage from '../../pages/Feed/OrderPage';
 import { useBackgroundLocation } from '../../hooks/useBackgroundLocation';
+import { useAppDispatch, useAppSelector } from '../../hooks/useTypedRedux';
+import type { RootState } from '../../services/store';
+import type { Ingredient, Order, OrderDetails } from '../../utils/types';
 
 interface LocationState {
   background?: {
@@ -35,20 +36,11 @@ interface LocationState {
     state: unknown;
     key: string;
   };
-  order?: {
-    _id: string;
-    number: number;
-    name: string;
-    status: string;
-    ingredients: string[];
-    createdAt: string;
-    ingredientsData: any[];
-    totalPrice: number;
-  };
+  order?: Order;
 }
 
-const AppContent: React.FC = () => {
-  const dispatch: AppDispatch = useDispatch();
+const AppContent = () => {
+  const dispatch = useAppDispatch();
   const location = useLocation();
   const state = location.state as LocationState;
   const navigate = useNavigate();
@@ -59,9 +51,7 @@ const AppContent: React.FC = () => {
     loading: ingredientsLoading, 
     error: ingredientsError,
     currentIngredient
-  } = useSelector((state: RootState) => state.ingredients);
-
-  const { orders } = useSelector((state: RootState) => state.ws);
+  } = useAppSelector((state: RootState) => state.ingredients);
 
   useEffect(() => {
     dispatch(getIngredients());
@@ -74,7 +64,7 @@ const AppContent: React.FC = () => {
   useEffect(() => {
     if (location.pathname.startsWith('/ingredients/') && ingredients.length) {
       const id = location.pathname.split('/')[2];
-      const ingredient = ingredients.find(item => item._id === id);
+      const ingredient = ingredients.find((item: Ingredient) => item._id === id);
       if (ingredient) {
         dispatch(setCurrentIngredient(ingredient));
       }
@@ -95,18 +85,26 @@ const AppContent: React.FC = () => {
 
   const handleCloseModal = () => navigate(-1);
 
-  const prepareOrderData = (order: any) => {
+  const prepareOrderData = (order: Order | undefined): OrderDetails | null => {
     if (!order) return null;
     
+    const ingredientsInfo = ingredients
+      .filter((ing: Ingredient) => order.ingredients.includes(ing._id))
+      .map(({ _id, name, price, image_mobile }) => ({ _id, name, price, image_mobile }));
+
+    const total = order.ingredients.reduce((sum: number, id: string) => {
+      const ingredient = ingredients.find((item: Ingredient) => item._id === id);
+      return sum + (ingredient?.price || 0);
+    }, 0);
+
     return {
-      ...order,
-      ingredientsInfo: ingredients.filter(ing => 
-        order.ingredients.includes(ing._id)
-      ),
-      total: order.ingredients.reduce((sum: number, id: string) => {
-        const ingredient = ingredients.find(item => item._id === id);
-        return sum + (ingredient?.price || 0);
-      }, 0)
+      number: order.number,
+      name: order.name,
+      status: order.status,
+      ingredients: order.ingredients,
+      ingredientsInfo,
+      total,
+      createdAt: order.createdAt
     };
   };
 
@@ -156,8 +154,11 @@ const AppContent: React.FC = () => {
           <Route path="/feed" element={<FeedPage />} />
           <Route path="/feed/:number" element={<OrderPage />} />
           
-          {/* Отдельный роут для страницы заказа профиля */}
-          <Route path="/profile/orders/:number" element={<ProfileOrderPage />} />
+          <Route path="/profile/orders/:number" element={
+            <ProtectedRoute>
+              <ProfileOrderPage />
+            </ProtectedRoute>
+          } />
           
           <Route path="/profile" element={
             <ProtectedRoute>
@@ -166,7 +167,6 @@ const AppContent: React.FC = () => {
           }>
             <Route index element={<Profile />} />
             <Route path="orders" element={<ProfileOrdersList />} />
-            {/* Убрали отсюда path="orders/:number" */}
           </Route>
 
           <Route path="/ingredients/:id" element={<IngredientPage />} />
@@ -190,10 +190,10 @@ const AppContent: React.FC = () => {
               element={
                 <Modal onClose={handleCloseModal}>
                   {state?.order ? (
-                    <OrderDetailsModal order={prepareOrderData(state.order)} />
+                    <OrderDetailsModal order={prepareOrderData(state.order)!} />
                   ) : (
                     <div className="text text_type_main-medium">
-                      {orders.length ? 'Заказ не найден' : 'Загрузка данных...'}
+                      Заказ не найден
                     </div>
                   )}
                 </Modal>
@@ -204,7 +204,7 @@ const AppContent: React.FC = () => {
               element={
                 <Modal onClose={handleCloseModal}>
                   {state?.order ? (
-                    <OrderDetailsModal order={prepareOrderData(state.order)} />
+                    <OrderDetailsModal order={prepareOrderData(state.order)!} />
                   ) : (
                     <ProfileOrderPage />
                   )}
@@ -218,7 +218,7 @@ const AppContent: React.FC = () => {
   );
 }
 
-const App: React.FC = () => {
+const App = () => {
   return (
     <DndProvider backend={HTML5Backend}>
       <div className={styles.app}>
