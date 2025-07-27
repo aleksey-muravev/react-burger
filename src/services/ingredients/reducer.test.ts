@@ -90,7 +90,8 @@ describe('ingredients reducer', () => {
       ...initialState,
       items: [
         { ...mockIngredient, count: 1 },
-        { ...mockBun, count: 2 }
+        { ...mockBun, count: 2 },
+        { ...mockBun, _id: 'new-bun-id', count: 0 }
       ]
     };
 
